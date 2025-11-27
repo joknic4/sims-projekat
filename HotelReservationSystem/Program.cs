@@ -1,6 +1,7 @@
 using System;
 using HotelReservationSystem.Models;
 using HotelReservationSystem.Repositories;
+using HotelReservationSystem.Services;
 
 namespace HotelReservationSystem
 {
@@ -8,37 +9,40 @@ namespace HotelReservationSystem
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hotel Reservation System - v3");
+            Console.WriteLine("Hotel Reservation System - v4");
             Console.WriteLine("==============================\n");
             
-            // Test Repository pattern
+            // Inicijalizacija
             var korisnikRepo = new KorisnikRepository();
             var hotelRepo = new HotelRepository();
             
-            // Dodaj test korisnika
-            var admin = new Korisnik("1234567890123", "admin@hotel.com", "admin123", 
-                                     "Admin", "Adminovic", "0641111111", KorisnikTip.Administrator);
-            korisnikRepo.Add(admin);
-            korisnikRepo.Save();
+            var authService = new AuthService(korisnikRepo);
+            var korisnikService = new KorisnikService(korisnikRepo);
+            var hotelService = new HotelService(hotelRepo);
             
-            Console.WriteLine("Dodat admin korisnik i sacuvan u JSON");
+            // Test registracije
+            Console.WriteLine("Registracija novog gosta...");
+            bool uspesno = korisnikService.RegistrujGosta(
+                "9876543210987", "marko@email.com", "sifra123",
+                "Marko", "Markovic", "0641234567");
             
-            // Dodaj test hotel
-            var hotel = new Hotel("H001", "Grand Hotel Kragujevac", 2020, 5, "1234567890123");
-            hotelRepo.Add(hotel);
-            hotelRepo.Save();
+            if (uspesno)
+                Console.WriteLine("Gost uspesno registrovan!\n");
             
-            Console.WriteLine("Dodat hotel i sacuvan u JSON");
-            
-            // Ucitaj i prikazi
-            Console.WriteLine("\n--- Ucitani korisnici ---");
-            foreach (var k in korisnikRepo.GetAll())
+            // Test logina
+            Console.WriteLine("Pokusaj prijavljivanja...");
+            if (authService.Login("marko@email.com", "sifra123"))
             {
-                Console.WriteLine($"{k.GetIme()} {k.GetPrezime()} - {k.GetTipKorisnika()}");
+                var korisnik = authService.GetTrenutniKorisnik();
+                Console.WriteLine($"Uspesno prijavljen: {korisnik?.GetIme()} {korisnik?.GetPrezime()}\n");
             }
             
-            Console.WriteLine("\n--- Ucitani hoteli ---");
-            foreach (var h in hotelRepo.GetAll())
+            // Test dodavanja hotela
+            hotelService.DodajHotel("H001", "Grand Hotel", 2020, 5, "1234567890123");
+            hotelService.DodajHotel("H002", "Hotel Kragujevac", 2018, 4, "1234567890123");
+            
+            Console.WriteLine("--- Svi hoteli ---");
+            foreach (var h in hotelService.GetSviHoteli())
             {
                 Console.WriteLine($"{h.GetIme()} - {h.GetBrojZvezdica()} zvezdica");
             }
