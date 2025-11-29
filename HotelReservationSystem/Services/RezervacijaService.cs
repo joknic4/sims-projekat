@@ -17,27 +17,17 @@ namespace HotelReservationSystem.Services
         
         public bool KreirajRezervaciju(string jmbgGosta, string imeApartmana, string sifraHotela, DateTime datum)
         {
-            var sveRezervacije = rezervacijaRepository.GetAll().ToList();
-            var postojece = new List<Rezervacija>();
-            
-            foreach (var r in sveRezervacije)
-            {
-                if (r.GetImeApartmana() == imeApartmana && 
-                    r.GetSifraHotela() == sifraHotela)
-                {
-                    if (r.GetDatum().Date == datum.Date)
-                    {
-                        if (r.GetStatus() != StatusRezervacije.Odbijeno)
-                        {
-                            postojece.Add(r);
-                        }
-                    }
-                }
-            }
+            // Proveri da li je apartman zauzet
+            var postojece = rezervacijaRepository.GetAll()
+                .Where(r => r.GetImeApartmana() == imeApartmana && 
+                           r.GetSifraHotela() == sifraHotela &&
+                           r.GetDatum().Date == datum.Date &&
+                           r.GetStatus() != StatusRezervacije.Odbijeno)
+                .ToList();
             
             if (postojece.Count > 0)
             {
-                return false;
+                return false; // Apartman zauzet
             }
             
             var rezervacija = new Rezervacija(jmbgGosta, imeApartmana, sifraHotela, datum);
@@ -49,36 +39,12 @@ namespace HotelReservationSystem.Services
         
         public List<Rezervacija> GetRezervacijeGosta(string jmbgGosta)
         {
-            var rezervacije = rezervacijaRepository.GetByGost(jmbgGosta);
-            
-            rezervacije.Sort((a, b) => 
-            {
-                int statusCompare = a.GetStatus().CompareTo(b.GetStatus());
-                if (statusCompare != 0) return statusCompare;
-                
-                int datumCompare = DateTime.Compare(a.GetDatum(), b.GetDatum());
-                if (datumCompare != 0) return datumCompare;
-                
-                return string.Compare(a.GetId(), b.GetId(), StringComparison.Ordinal);
-            });
-            
-            return rezervacije;
+            return rezervacijaRepository.GetByGost(jmbgGosta);
         }
         
         public void PotvrdiRezervaciju(string id)
         {
-            var sve = rezervacijaRepository.GetAll();
-            Rezervacija? rezervacija = null;
-            
-            foreach (var r in sve)
-            {
-                if (r.GetId() == id)
-                {
-                    rezervacija = r;
-                    break;
-                }
-            }
-            
+            var rezervacija = rezervacijaRepository.GetById(id);
             if (rezervacija != null)
             {
                 rezervacija.Potvrdi();
@@ -88,18 +54,7 @@ namespace HotelReservationSystem.Services
         
         public void OdbijiRezervaciju(string id, string razlog)
         {
-            var sve = rezervacijaRepository.GetAll();
-            Rezervacija? rezervacija = null;
-            
-            foreach (var r in sve)
-            {
-                if (r.GetId() == id)
-                {
-                    rezervacija = r;
-                    break;
-                }
-            }
-            
+            var rezervacija = rezervacijaRepository.GetById(id);
             if (rezervacija != null)
             {
                 rezervacija.Odbij(razlog);
@@ -107,35 +62,21 @@ namespace HotelReservationSystem.Services
             }
         }
         
-        public List<Rezervacija> FilterByStatus(StatusRezervacije status)
-        {
-            var sve = rezervacijaRepository.GetAll();
-            var rezultat = new List<Rezervacija>();
-            
-            for (int i = 0; i < sve.Count; i++)
-            {
-                if (sve[i].GetStatus() == status)
-                {
-                    rezultat.Add(sve[i]);
-                }
-            }
-            
-            return rezultat;
-        }
-        
         public void OtkaziRezervaciju(string id)
         {
-            var sve = rezervacijaRepository.GetAll();
-            
-            foreach (var r in sve)
+            var rezervacija = rezervacijaRepository.GetById(id);
+            if (rezervacija != null && 
+                (rezervacija.GetStatus() == StatusRezervacije.NaCekanju || 
+                 rezervacija.GetStatus() == StatusRezervacije.Potvrdjeno))
             {
-                if (r.GetId() == id)
-                {
-                    r.SetStatus(StatusRezervacije.Otkazano);
-                    rezervacijaRepository.Save();
-                    break;
-                }
+                rezervacija.Otkazi();
+                rezervacijaRepository.Save();
             }
+        }
+        
+        public List<Rezervacija> FilterByStatus(List<Rezervacija> rezervacije, StatusRezervacije status)
+        {
+            return rezervacije.Where(r => r.GetStatus() == status).ToList();
         }
     }
 }

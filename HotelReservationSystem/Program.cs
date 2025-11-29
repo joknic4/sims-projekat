@@ -6,6 +6,7 @@ using HotelReservationSystem.UI;
 
 namespace HotelReservationSystem
 {
+    // TODO: U sledećoj verziji prebaciti na WPF sa App.xaml entry point-om
     class Program
     {
         static void Main(string[] args)
@@ -42,6 +43,10 @@ namespace HotelReservationSystem
                 hotelService.DodajHotel("H001", "Grand Hotel Kragujevac", 2020, 5, "9999999999999");
                 hotelService.DodajHotel("H002", "Hotel Šumarice", 2018, 4, "9999999999999");
                 hotelService.DodajHotel("H003", "Hotel Park", 2015, 3, "9999999999999");
+                
+                // Odmah odobrimo hotele za test potrebe
+                hotelService.OdobriHotel("H001");
+                hotelService.OdobriHotel("H002");
             }
             
             if (apartmanRepo.GetAll().Count == 0)

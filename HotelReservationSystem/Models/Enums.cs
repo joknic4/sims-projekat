@@ -15,6 +15,7 @@ namespace HotelReservationSystem.Models
         Otkazano
     }
     
+    // Dodato za potrebe praćenja statusa hotela
     public enum StatusHotela
     {
         NaCekanju,

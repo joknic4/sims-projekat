@@ -27,6 +27,11 @@ namespace HotelReservationSystem.Repositories
             return hoteli.FirstOrDefault(h => h.GetSifra() == sifra);
         }
         
+        public List<Hotel> GetByVlasnik(string jmbgVlasnika)
+        {
+            return hoteli.Where(h => h.GetJmbgVlasnika() == jmbgVlasnika).ToList();
+        }
+        
         public void Add(Hotel hotel)
         {
             hoteli.Add(hotel);
@@ -34,23 +39,12 @@ namespace HotelReservationSystem.Repositories
         
         public void Update(Hotel hotel)
         {
-            hoteli.Add(hotel);
-        }
-        
-        public List<Hotel> GetByVlasnik(string jmbgVlasnika)
-        {
-            var rezultat = new List<Hotel>();
-            
-            for (int i = 0; i < hoteli.Count; i++)
+            var postojeci = GetBySifra(hotel.GetSifra());
+            if (postojeci != null)
             {
-                var hotel = hoteli[i];
-                if (hotel.GetJmbgVlasnika() == jmbgVlasnika)
-                {
-                    rezultat.Add(hotel);
-                }
+                hoteli.Remove(postojeci);
+                hoteli.Add(hotel);
             }
-            
-            return rezultat.ToList();
         }
         
         public void Save()

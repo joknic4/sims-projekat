@@ -167,7 +167,7 @@ namespace HotelReservationSystem.UI
             {
                 foreach (var hotel in hoteli)
                 {
-                    Console.WriteLine($"[{hotel.GetSifra()}] {hotel.GetIme()}");
+                    Console.WriteLine($"[{hotel.GetSifra()}] {hotel.GetIme()} - Status: {hotel.GetStatus()}");
                     Console.WriteLine($"    Zvezdice: {hotel.GetBrojZvezdica()}, Godina: {hotel.GetGodinaIzgradnje()}");
                     Console.WriteLine();
                 }

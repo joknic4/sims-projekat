@@ -15,12 +15,12 @@ namespace HotelReservationSystem.Models
         public Rezervacija()
         {
             id = Guid.NewGuid().ToString();
-            jmbgGosta = "";
-            imeApartmana = "";
-            sifraHotela = "";
+            jmbgGosta = string.Empty;
+            imeApartmana = string.Empty;
+            sifraHotela = string.Empty;
             datum = DateTime.Now;
             status = StatusRezervacije.NaCekanju;
-            razlogOdbijanja = "";
+            razlogOdbijanja = string.Empty;
         }
         
         public Rezervacija(string jmbgGosta, string imeApartmana, string sifraHotela, DateTime datum)
@@ -31,7 +31,7 @@ namespace HotelReservationSystem.Models
             this.sifraHotela = sifraHotela;
             this.datum = datum;
             this.status = StatusRezervacije.NaCekanju;
-            this.razlogOdbijanja = "";
+            this.razlogOdbijanja = string.Empty;
         }
         
         public string GetId() => id;
@@ -51,6 +51,11 @@ namespace HotelReservationSystem.Models
         {
             status = StatusRezervacije.Odbijeno;
             razlogOdbijanja = razlog;
+        }
+        
+        public void Otkazi()
+        {
+            status = StatusRezervacije.Otkazano;
         }
         
         public void SetStatus(StatusRezervacije noviStatus)
