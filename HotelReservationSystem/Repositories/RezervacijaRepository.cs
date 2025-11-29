@@ -27,6 +27,21 @@ namespace HotelReservationSystem.Repositories
             return rezervacije.Where(r => r.GetJmbgGosta() == jmbgGosta).ToList();
         }
         
+        public List<Rezervacija> GetByStatus(StatusRezervacije status)
+        {
+            var rezultat = new List<Rezervacija>();
+            
+            foreach (var rez in rezervacije)
+            {
+                if (rez.GetStatus() == status)
+                {
+                    rezultat.Add(rez);
+                }
+            }
+            
+            return rezultat.ToList();
+        }
+        
         public Rezervacija? GetById(string id)
         {
             return rezervacije.FirstOrDefault(r => r.GetId() == id);

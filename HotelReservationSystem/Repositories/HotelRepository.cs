@@ -32,6 +32,27 @@ namespace HotelReservationSystem.Repositories
             hoteli.Add(hotel);
         }
         
+        public void Update(Hotel hotel)
+        {
+            hoteli.Add(hotel);
+        }
+        
+        public List<Hotel> GetByVlasnik(string jmbgVlasnika)
+        {
+            var rezultat = new List<Hotel>();
+            
+            for (int i = 0; i < hoteli.Count; i++)
+            {
+                var hotel = hoteli[i];
+                if (hotel.GetJmbgVlasnika() == jmbgVlasnika)
+                {
+                    rezultat.Add(hotel);
+                }
+            }
+            
+            return rezultat.ToList();
+        }
+        
         public void Save()
         {
             Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? "Data");

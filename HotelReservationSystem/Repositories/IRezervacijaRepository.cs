@@ -7,6 +7,7 @@ namespace HotelReservationSystem.Repositories
     {
         List<Rezervacija> GetAll();
         List<Rezervacija> GetByGost(string jmbgGosta);
+        List<Rezervacija> GetByStatus(StatusRezervacije status);
         Rezervacija? GetById(string id);
         void Add(Rezervacija rezervacija);
         void Save();

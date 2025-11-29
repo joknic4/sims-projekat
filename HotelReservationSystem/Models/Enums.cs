@@ -11,6 +11,13 @@ namespace HotelReservationSystem.Models
     {
         NaCekanju,
         Potvrdjeno,
-        Odbijeno
+        Odbijeno,
+        Otkazano
+    }
+    
+    public enum StatusHotela
+    {
+        NaCekanju,
+        Odobren
     }
 }

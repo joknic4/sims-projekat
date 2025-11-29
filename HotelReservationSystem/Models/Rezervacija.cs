@@ -52,5 +52,10 @@ namespace HotelReservationSystem.Models
             status = StatusRezervacije.Odbijeno;
             razlogOdbijanja = razlog;
         }
+        
+        public void SetStatus(StatusRezervacije noviStatus)
+        {
+            status = noviStatus;
+        }
     }
 }
