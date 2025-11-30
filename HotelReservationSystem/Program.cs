@@ -2,11 +2,11 @@ using System;
 using HotelReservationSystem.Models;
 using HotelReservationSystem.Repositories;
 using HotelReservationSystem.Services;
-using HotelReservationSystem.UI;
 
 namespace HotelReservationSystem
 {
-    // TODO: U sledećoj verziji prebaciti na WPF sa App.xaml entry point-om
+    // NAPOMENA: WPF aplikacija se pokreće preko App.xaml (StartupUri="Views/LoginWindow.xaml")
+    // Ova klasa služi samo za inicijalizaciju test podataka
     class Program
     {
         static void Main(string[] args)
@@ -15,14 +15,6 @@ namespace HotelReservationSystem
             var korisnikRepo = new KorisnikRepository();
             var hotelRepo = new HotelRepository();
             var apartmanRepo = new ApartmanRepository();
-            var rezervacijaRepo = new RezervacijaRepository();
-            
-            // Inicijalizacija servisa
-            var authService = new AuthService(korisnikRepo);
-            var korisnikService = new KorisnikService(korisnikRepo);
-            var hotelService = new HotelService(hotelRepo);
-            var apartmanService = new ApartmanService(apartmanRepo);
-            var rezervacijaService = new RezervacijaService(rezervacijaRepo);
             
             // Dodaj test podatke ako ne postoje
             if (korisnikRepo.GetAll().Count == 0)
@@ -35,30 +27,32 @@ namespace HotelReservationSystem
                                           "Petar", "Petrovic", "0642222222", KorisnikTip.Vlasnik);
                 korisnikRepo.Add(vlasnik);
                 
+                var gost = new Korisnik("5555555555555", "gost@hotel.com", "gost", 
+                                       "Ana", "Anić", "0643333333", KorisnikTip.Gost);
+                korisnikRepo.Add(gost);
+                
                 korisnikRepo.Save();
             }
             
             if (hotelRepo.GetAll().Count == 0)
             {
+                var hotelService = new HotelService(hotelRepo);
                 hotelService.DodajHotel("H001", "Grand Hotel Kragujevac", 2020, 5, "9999999999999");
                 hotelService.DodajHotel("H002", "Hotel Šumarice", 2018, 4, "9999999999999");
                 hotelService.DodajHotel("H003", "Hotel Park", 2015, 3, "9999999999999");
                 
-                // Odmah odobrimo hotele za test potrebe
+                // Odmah odobrimo hotele
                 hotelService.OdobriHotel("H001");
                 hotelService.OdobriHotel("H002");
             }
             
             if (apartmanRepo.GetAll().Count == 0)
             {
+                var apartmanService = new ApartmanService(apartmanRepo);
                 apartmanService.DodajApartman("Apartman A1", "Luksuzni apartman sa pogledom", 3, 6, "H001");
-                apartmanService.DodajApartman("Apartman A2", "Komforan porodicni apartman", 2, 4, "H001");
+                apartmanService.DodajApartman("Apartman A2", "Komforan porodični apartman", 2, 4, "H001");
                 apartmanService.DodajApartman("Apartman B1", "Studio apartman", 1, 2, "H002");
             }
-            
-            // Pokreni aplikaciju
-            var meni = new KonzolniMeni(authService, korisnikService, hotelService);
-            meni.Pokreni();
         }
     }
 }

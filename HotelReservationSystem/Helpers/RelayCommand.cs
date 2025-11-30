@@ -1,9 +1,9 @@
 using System;
+using System.Windows.Input;
 
 namespace HotelReservationSystem.Helpers
 {
-    // Priprema za WPF - bazna implementacija Command pattern-a
-    public class RelayCommand
+    public class RelayCommand : ICommand
     {
         private readonly Action<object?> execute;
         private readonly Predicate<object?>? canExecute;
@@ -12,6 +12,12 @@ namespace HotelReservationSystem.Helpers
         {
             this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
             this.canExecute = canExecute;
+        }
+
+        public event EventHandler? CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
         }
 
         public bool CanExecute(object? parameter)
