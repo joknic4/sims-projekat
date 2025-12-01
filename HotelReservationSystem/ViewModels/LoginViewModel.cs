@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using HotelReservationSystem.Helpers;
+using HotelReservationSystem.Views;
 
 namespace HotelReservationSystem.ViewModels
 {
@@ -23,10 +24,12 @@ namespace HotelReservationSystem.ViewModels
         }
 
         public ICommand LoginCommand { get; }
+        public ICommand RegisterCommand { get; }
 
         public LoginViewModel()
         {
             LoginCommand = new RelayCommand(Login);
+            RegisterCommand = new RelayCommand(Register);
         }
 
         private void Login(object? parameter)
@@ -58,12 +61,17 @@ namespace HotelReservationSystem.ViewModels
                 }
 
                 MessageBox.Show($"Uspešna prijava! Dobrodošli, {korisnik.GetIme()} {korisnik.GetPrezime()}");
-                // TODO: Otvaranje glavnog prozora prema tipu korisnika
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Greška: {ex.Message}";
             }
+        }
+
+        private void Register(object? parameter)
+        {
+            var registerWindow = new RegisterWindow();
+            registerWindow.ShowDialog();
         }
     }
 }
