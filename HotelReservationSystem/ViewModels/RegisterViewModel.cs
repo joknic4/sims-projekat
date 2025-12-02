@@ -72,6 +72,12 @@ namespace HotelReservationSystem.ViewModels
                     return;
                 }
 
+                if (Jmbg.Length != 13)
+                {
+                    ErrorMessage = "JMBG mora imati tačno 13 cifara";
+                    return;
+                }
+
                 if (string.IsNullOrWhiteSpace(Email))
                 {
                     ErrorMessage = "Unesite email";
@@ -106,7 +112,7 @@ namespace HotelReservationSystem.ViewModels
                 }
                 else
                 {
-                    ErrorMessage = "Registracija nije uspela.";
+                    ErrorMessage = "Registracija nije uspela. Možda već postoji korisnik sa ovim JMBG-om ili email-om.";
                 }
             }
             catch (Exception ex)

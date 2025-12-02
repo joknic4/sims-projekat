@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using HotelReservationSystem.Helpers;
 using HotelReservationSystem.Views;
+using HotelReservationSystem.Models;
 
 namespace HotelReservationSystem.ViewModels
 {
@@ -60,7 +61,16 @@ namespace HotelReservationSystem.ViewModels
                     return;
                 }
 
-                MessageBox.Show($"Uspešna prijava! Dobrodošli, {korisnik.GetIme()} {korisnik.GetPrezime()}");
+                if (korisnik.GetTipKorisnika() == KorisnikTip.Administrator)
+                {
+                    var adminWindow = new AdminWindow();
+                    adminWindow.Show();
+                    Application.Current.Windows[0]?.Close();
+                }
+                else
+                {
+                    MessageBox.Show($"Uspešna prijava! Dobrodošli, {korisnik.GetIme()} {korisnik.GetPrezime()}");
+                }
             }
             catch (Exception ex)
             {
