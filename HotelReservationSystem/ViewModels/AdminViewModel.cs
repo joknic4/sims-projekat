@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using HotelReservationSystem.Helpers;
@@ -8,6 +9,9 @@ namespace HotelReservationSystem.ViewModels
 {
     public class AdminViewModel : ViewModelBase
     {
+        private ObservableCollection<Korisnik> vlasnike = new();
+        private ObservableCollection<Hotel> hoteli = new();
+        
         private string vlasnikJmbg = string.Empty;
         private string vlasnikEmail = string.Empty;
         private string vlasnikIme = string.Empty;
@@ -19,6 +23,20 @@ namespace HotelReservationSystem.ViewModels
         private int hotelGodina = DateTime.Now.Year;
         private int hotelZvezdice = 3;
         private string hotelVlasnikJmbg = string.Empty;
+        
+        private string statusMessage = string.Empty;
+
+        public ObservableCollection<Korisnik> Vlasnike
+        {
+            get => vlasnike;
+            set => SetProperty(ref vlasnike, value);
+        }
+
+        public ObservableCollection<Hotel> Hoteli
+        {
+            get => hoteli;
+            set => SetProperty(ref hoteli, value);
+        }
 
         public string VlasnikJmbg
         {
@@ -80,16 +98,29 @@ namespace HotelReservationSystem.ViewModels
             set => SetProperty(ref hotelVlasnikJmbg, value);
         }
 
+        public string StatusMessage
+        {
+            get => statusMessage;
+            set => SetProperty(ref statusMessage, value);
+        }
+
         public ICommand RegisterVlasnikCommand { get; }
         public ICommand CreateHotelCommand { get; }
+        public ICommand GenerateHotelCodeCommand { get; }
+        public ICommand LoadVlasnikeCommand { get; }
+        public ICommand LoadHoteliCommand { get; }
         public ICommand LogoutCommand { get; }
 
         public AdminViewModel()
         {
             RegisterVlasnikCommand = new RelayCommand(RegisterVlasnik);
             CreateHotelCommand = new RelayCommand(_ => CreateHotel());
+            GenerateHotelCodeCommand = new RelayCommand(_ => GenerateHotelCode());
+            LoadVlasnikeCommand = new RelayCommand(_ => LoadVlasnike());
+            LoadHoteliCommand = new RelayCommand(_ => LoadHoteli());
             LogoutCommand = new RelayCommand(_ => Logout());
 
+            LoadVlasnike();
             GenerateHotelCode();
         }
 
@@ -122,10 +153,11 @@ namespace HotelReservationSystem.ViewModels
                                   MessageBoxButton.OK, MessageBoxImage.Information);
                     ClearVlasnikForm();
                     passwordBox.Clear();
+                    LoadVlasnike();
                 }
                 else
                 {
-                    MessageBox.Show("Registracija nije uspela.", 
+                    MessageBox.Show("Registracija nije uspela. Možda već postoji vlasnik sa ovim JMBG-om ili email-om.", 
                                   "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
@@ -158,9 +190,10 @@ namespace HotelReservationSystem.ViewModels
 
                 if (hotelService.AddHotel(noviHotel))
                 {
-                    MessageBox.Show("Hotel je kreiran", "Uspeh", 
+                    MessageBox.Show("Hotel je kreiran i čeka odobrenje vlasnika", "Uspeh", 
                                   MessageBoxButton.OK, MessageBoxImage.Information);
                     ClearHotelForm();
+                    LoadHoteli();
                     GenerateHotelCode();
                 }
                 else
@@ -179,6 +212,48 @@ namespace HotelReservationSystem.ViewModels
         {
             var hotelService = ServiceLocator.Instance.HotelService;
             HotelSifra = hotelService.GenerateHotelCode();
+        }
+
+        private void LoadVlasnike()
+        {
+            try
+            {
+                var korisnikService = ServiceLocator.Instance.KorisnikService;
+                var allVlasnike = korisnikService.GetVlasnike();
+                
+                Vlasnike.Clear();
+                foreach (var vlasnik in allVlasnike)
+                {
+                    Vlasnike.Add(vlasnik);
+                }
+                
+                StatusMessage = $"Učitano {Vlasnike.Count} vlasnika";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Greška: {ex.Message}";
+            }
+        }
+
+        private void LoadHoteli()
+        {
+            try
+            {
+                var hotelService = ServiceLocator.Instance.HotelService;
+                var allHotels = hotelService.GetAllHotels();
+                
+                Hoteli.Clear();
+                foreach (var hotel in allHotels)
+                {
+                    Hoteli.Add(hotel);
+                }
+                
+                StatusMessage = $"Učitano {Hoteli.Count} hotela";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Greška: {ex.Message}";
+            }
         }
 
         private void ClearVlasnikForm()
