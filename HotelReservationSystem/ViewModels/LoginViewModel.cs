@@ -67,6 +67,12 @@ namespace HotelReservationSystem.ViewModels
                     adminWindow.Show();
                     Application.Current.Windows[0]?.Close();
                 }
+                else if (korisnik.GetTipKorisnika() == KorisnikTip.Vlasnik)
+                {
+                    var vlasnikWindow = new VlasnikWindow();
+                    vlasnikWindow.Show();
+                    Application.Current.Windows[0]?.Close();
+                }
                 else
                 {
                     MessageBox.Show($"Uspešna prijava! Dobrodošli, {korisnik.GetIme()} {korisnik.GetPrezime()}");
