@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using HotelReservationSystem.Helpers;
@@ -21,6 +22,7 @@ namespace HotelReservationSystem.ViewModels
         private int apartmanMaxGostiju = 2;
         
         private string statusMessage = string.Empty;
+        private string statusFilter = "Sve";
 
         public ObservableCollection<Hotel> MojiHoteli
         {
@@ -45,7 +47,10 @@ namespace HotelReservationSystem.ViewModels
             get => selectedHotel;
             set
             {
-                SetProperty(ref selectedHotel, value);
+                if (SetProperty(ref selectedHotel, value) && value != null)
+                {
+                    LoadApartmani(value.GetSifra());
+                }
             }
         }
 
@@ -85,6 +90,18 @@ namespace HotelReservationSystem.ViewModels
             set => SetProperty(ref statusMessage, value);
         }
 
+        public string StatusFilter
+        {
+            get => statusFilter;
+            set
+            {
+                if (SetProperty(ref statusFilter, value))
+                {
+                    LoadRezervacije();
+                }
+            }
+        }
+
         public ICommand LoadHoteliCommand { get; }
         public ICommand ApproveHotelCommand { get; }
         public ICommand RejectHotelCommand { get; }
@@ -93,7 +110,6 @@ namespace HotelReservationSystem.ViewModels
         public ICommand ApproveRezervacijaCommand { get; }
         public ICommand RejectRezervacijaCommand { get; }
         public ICommand LogoutCommand { get; }
-        public ICommand LoadApartmaniCommand { get; }
 
         public VlasnikViewModel()
         {
@@ -105,7 +121,6 @@ namespace HotelReservationSystem.ViewModels
             ApproveRezervacijaCommand = new RelayCommand(ApproveRezervacija);
             RejectRezervacijaCommand = new RelayCommand(RejectRezervacija);
             LogoutCommand = new RelayCommand(_ => Logout());
-            LoadApartmaniCommand = new RelayCommand(_ => LoadApartmaniManual());
 
             LoadHoteli();
             LoadRezervacije();
@@ -123,18 +138,16 @@ namespace HotelReservationSystem.ViewModels
                 var hotels = hotelService.GetHotelsByVlasnik(currentUser.GetJmbg());
                 
                 MojiHoteli.Clear();
-                int counter = 0;
                 foreach (var hotel in hotels)
                 {
                     MojiHoteli.Add(hotel);
-                    counter++;
                 }
                 
-                StatusMessage = "Učitano hotela: " + counter.ToString();
+                StatusMessage = $"Učitano {MojiHoteli.Count} hotela";
             }
             catch (Exception ex)
             {
-                StatusMessage = "Greška: " + ex.Message;
+                StatusMessage = $"Greška: {ex.Message}";
             }
         }
 
@@ -148,10 +161,15 @@ namespace HotelReservationSystem.ViewModels
                     return;
                 }
 
+                if (SelectedHotel.GetStatus() != StatusHotela.NaCekanju)
+                {
+                    MessageBox.Show("Možete odobriti samo hotele koji su na čekanju", "Greška", 
+                                  MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 var hotelService = ServiceLocator.Instance.HotelService;
-                bool rezultat = hotelService.ApproveHotel(SelectedHotel.GetSifra());
-                
-                if (rezultat == true)
+                if (hotelService.ApproveHotel(SelectedHotel.GetSifra()))
                 {
                     MessageBox.Show("Hotel je odobren i sada je vidljiv u sistemu", "Uspeh", 
                                   MessageBoxButton.OK, MessageBoxImage.Information);
@@ -165,7 +183,7 @@ namespace HotelReservationSystem.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Greška: " + ex.Message, "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                StatusMessage = $"Greška: {ex.Message}";
             }
         }
 
@@ -178,16 +196,21 @@ namespace HotelReservationSystem.ViewModels
                     MessageBox.Show("Izaberite hotel", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                
+
+                if (SelectedHotel.GetStatus() != StatusHotela.NaCekanju)
+                {
+                    MessageBox.Show("Možete odbiti samo hotele koji su na čekanju", "Greška", 
+                                  MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 var result = MessageBox.Show("Da li ste sigurni da želite da odbijete ovaj hotel?", 
                                             "Potvrda", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 
                 if (result == MessageBoxResult.Yes)
                 {
                     var hotelService = ServiceLocator.Instance.HotelService;
-                    bool success = hotelService.RejectHotel(SelectedHotel.GetSifra());
-                    
-                    if (success)
+                    if (hotelService.RejectHotel(SelectedHotel.GetSifra()))
                     {
                         MessageBox.Show("Hotel je odbijen", "Uspeh", 
                                       MessageBoxButton.OK, MessageBoxImage.Information);
@@ -202,36 +225,26 @@ namespace HotelReservationSystem.ViewModels
             }
             catch (Exception ex)
             {
-                StatusMessage = "Greška: " + ex.Message;
+                StatusMessage = $"Greška: {ex.Message}";
             }
         }
 
-        private void LoadApartmaniManual()
+        private void LoadApartmani(string sifraHotela)
         {
             try
             {
-                if (SelectedHotel == null)
-                {
-                    MessageBox.Show("Prvo izaberite hotel", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                
                 var apartmanService = ServiceLocator.Instance.ApartmanService;
-                var allApartmani = apartmanService.GetApartmaniByHotel(SelectedHotel.GetSifra());
+                var allApartmani = apartmanService.GetApartmaniByHotel(sifraHotela);
                 
                 Apartmani.Clear();
-                int count = 0;
                 foreach (var apartman in allApartmani)
                 {
                     Apartmani.Add(apartman);
-                    count = count + 1;
                 }
-                
-                StatusMessage = "Učitano apartmana: " + count;
             }
             catch (Exception ex)
             {
-                StatusMessage = "Greška: " + ex.Message;
+                StatusMessage = $"Greška: {ex.Message}";
             }
         }
 
@@ -244,25 +257,24 @@ namespace HotelReservationSystem.ViewModels
                     MessageBox.Show("Prvo izaberite hotel", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                
+
+                if (SelectedHotel.GetStatus() != StatusHotela.Odobren)
+                {
+                    MessageBox.Show("Možete dodavati apartmane samo u odobrene hotele", "Greška", 
+                                  MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 if (string.IsNullOrWhiteSpace(ApartmanIme))
                 {
                     MessageBox.Show("Unesite ime apartmana", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                if (ApartmanBrojSoba <= 0)
-                {
-                    MessageBox.Show("Broj soba mora biti veći od 0", "Greška", 
-                                  MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
                 var apartmanService = ServiceLocator.Instance.ApartmanService;
                 
-                string apartmanId = apartmanService.GenerateApartmanId();
                 var noviApartman = new Apartman(
-                    apartmanId,
+                    apartmanService.GenerateApartmanId(),
                     ApartmanIme,
                     ApartmanOpis,
                     ApartmanBrojSoba,
@@ -270,14 +282,12 @@ namespace HotelReservationSystem.ViewModels
                     SelectedHotel.GetSifra()
                 );
 
-                bool success = apartmanService.AddApartman(noviApartman);
-                
-                if (success == true)
+                if (apartmanService.AddApartman(noviApartman))
                 {
                     MessageBox.Show("Apartman je uspešno kreiran", "Uspeh", 
                                   MessageBoxButton.OK, MessageBoxImage.Information);
-                    
-                    LoadApartmaniManual();
+                    ClearApartmanForm();
+                    LoadApartmani(SelectedHotel.GetSifra());
                 }
                 else
                 {
@@ -287,7 +297,7 @@ namespace HotelReservationSystem.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Greška: " + ex.Message, "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Greška: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -302,19 +312,24 @@ namespace HotelReservationSystem.ViewModels
                 var rezervacijaService = ServiceLocator.Instance.RezervacijaService;
                 var allRezervacije = rezervacijaService.GetRezervacijeForVlasnik(currentUser.GetJmbg());
 
+                var filtered = StatusFilter switch
+                {
+                    "Na čekanju" => allRezervacije.Where(r => r.GetStatus() == StatusRezervacije.NaCekanju).ToList(),
+                    "Potvrđeno" => allRezervacije.Where(r => r.GetStatus() == StatusRezervacije.Potvrdjeno).ToList(),
+                    _ => allRezervacije
+                };
+
                 Rezervacije.Clear();
-                int total = 0;
-                foreach (var rez in allRezervacije)
+                foreach (var rez in filtered)
                 {
                     Rezervacije.Add(rez);
-                    total++;
                 }
                 
-                StatusMessage = "Učitano rezervacija: " + total;
+                StatusMessage = $"Učitano {Rezervacije.Count} rezervacija";
             }
             catch (Exception ex)
             {
-                StatusMessage = "Greška: " + ex.Message;
+                StatusMessage = $"Greška: {ex.Message}";
             }
         }
 
@@ -329,9 +344,7 @@ namespace HotelReservationSystem.ViewModels
                 }
 
                 var rezervacijaService = ServiceLocator.Instance.RezervacijaService;
-                bool result = rezervacijaService.ApproveRezervacija(SelectedRezervacija.GetId());
-                
-                if (result)
+                if (rezervacijaService.ApproveRezervacija(SelectedRezervacija.GetId()))
                 {
                     MessageBox.Show("Rezervacija je potvrđena", "Uspeh", 
                                   MessageBoxButton.OK, MessageBoxImage.Information);
@@ -345,7 +358,7 @@ namespace HotelReservationSystem.ViewModels
             }
             catch (Exception ex)
             {
-                StatusMessage = "Greška: " + ex.Message;
+                StatusMessage = $"Greška: {ex.Message}";
             }
         }
 
@@ -358,7 +371,7 @@ namespace HotelReservationSystem.ViewModels
                     MessageBox.Show("Izaberite rezervaciju", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                
+
                 var razlog = Microsoft.VisualBasic.Interaction.InputBox(
                     "Unesite razlog odbijanja rezervacije:",
                     "Razlog odbijanja",
@@ -373,9 +386,7 @@ namespace HotelReservationSystem.ViewModels
                 }
 
                 var rezervacijaService = ServiceLocator.Instance.RezervacijaService;
-                bool success = rezervacijaService.RejectRezervacija(SelectedRezervacija.GetId(), razlog);
-                
-                if (success == true)
+                if (rezervacijaService.RejectRezervacija(SelectedRezervacija.GetId(), razlog))
                 {
                     MessageBox.Show("Rezervacija je odbijena", "Uspeh", 
                                   MessageBoxButton.OK, MessageBoxImage.Information);
@@ -389,8 +400,16 @@ namespace HotelReservationSystem.ViewModels
             }
             catch (Exception ex)
             {
-                StatusMessage = "Greška: " + ex.Message;
+                StatusMessage = $"Greška: {ex.Message}";
             }
+        }
+
+        private void ClearApartmanForm()
+        {
+            ApartmanIme = string.Empty;
+            ApartmanOpis = string.Empty;
+            ApartmanBrojSoba = 1;
+            ApartmanMaxGostiju = 2;
         }
 
         private void Logout()
@@ -398,15 +417,7 @@ namespace HotelReservationSystem.ViewModels
             ServiceLocator.Instance.AuthService.Logout();
             var loginWindow = new Views.LoginWindow();
             loginWindow.Show();
-            
-            foreach (Window window in Application.Current.Windows)
-            {
-                if (window is Views.VlasnikWindow)
-                {
-                    window.Close();
-                    break;
-                }
-            }
+            Application.Current.Windows[0]?.Close();
         }
     }
 }

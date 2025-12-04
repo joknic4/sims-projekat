@@ -3,8 +3,8 @@ using System.Windows;
 using System.Windows.Input;
 using HotelReservationSystem.Helpers;
 using HotelReservationSystem.Views;
-using HotelReservationSystem.Models;
 
+using HotelReservationSystem.Models;
 namespace HotelReservationSystem.ViewModels
 {
     public class LoginViewModel : ViewModelBase
@@ -61,22 +61,19 @@ namespace HotelReservationSystem.ViewModels
                     return;
                 }
 
-                if (korisnik.GetTipKorisnika() == KorisnikTip.Administrator)
+                // Otvaranje odgovarajućeg prozora prema tipu korisnika
+                Window mainWindow = korisnik.GetTipKorisnika() switch
                 {
-                    var adminWindow = new AdminWindow();
-                    adminWindow.Show();
-                    Application.Current.Windows[0]?.Close();
-                }
-                else if (korisnik.GetTipKorisnika() == KorisnikTip.Vlasnik)
-                {
-                    var vlasnikWindow = new VlasnikWindow();
-                    vlasnikWindow.Show();
-                    Application.Current.Windows[0]?.Close();
-                }
-                else
-                {
-                    MessageBox.Show($"Uspešna prijava! Dobrodošli, {korisnik.GetIme()} {korisnik.GetPrezime()}");
-                }
+                    KorisnikTip.Administrator => new AdminWindow(),
+                    KorisnikTip.Gost => new GostWindow(),
+                    KorisnikTip.Vlasnik => new VlasnikWindow(),
+                    _ => throw new InvalidOperationException("Nepoznat tip korisnika")
+                };
+
+                mainWindow.Show();
+
+                // Zatvaranje login prozora
+                Application.Current.Windows[0]?.Close();
             }
             catch (Exception ex)
             {
