@@ -6,8 +6,12 @@ namespace HotelReservationSystem.Repositories
     public interface IApartmanRepository
     {
         List<Apartman> GetAll();
+        Apartman? GetById(string id);
         List<Apartman> GetByHotel(string sifraHotela);
-        void Add(Apartman apartman);
-        void Save();
+        bool Add(Apartman apartman);
+        bool Update(Apartman apartman);
+        bool Delete(string id);
+        void SaveToFile();
+        void LoadFromFile();
     }
 }

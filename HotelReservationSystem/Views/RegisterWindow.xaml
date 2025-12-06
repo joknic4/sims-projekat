@@ -16,8 +16,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
+        <!-- Naslov -->
         <Border Grid.Row="0" Background="#2196F3" Padding="15">
             <TextBlock Text="REGISTRACIJA NOVOG GOSTA" 
                        FontSize="16" 
@@ -26,46 +28,48 @@
                        HorizontalAlignment="Center"/>
         </Border>
         
-        <StackPanel Grid.Row="1" Margin="30,20">
-            
-            <Label Content="JMBG (13 cifara):" FontWeight="Bold"/>
-            <TextBox Text="{Binding Jmbg, UpdateSourceTrigger=PropertyChanged}" MaxLength="13"/>
-            
-            <Label Content="Email:" FontWeight="Bold"/>
-            <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"/>
-            
-            <Label Content="Lozinka:" FontWeight="Bold"/>
-            <PasswordBox x:Name="PasswordBox"/>
-            
-            <Label Content="Ime:" FontWeight="Bold"/>
-            <TextBox Text="{Binding Ime, UpdateSourceTrigger=PropertyChanged}"/>
-            
-            <Label Content="Prezime:" FontWeight="Bold"/>
-            <TextBox Text="{Binding Prezime, UpdateSourceTrigger=PropertyChanged}"/>
-            
-            <Label Content="Mobilni telefon:" FontWeight="Bold"/>
-            <TextBox Text="{Binding MobilniTelefon, UpdateSourceTrigger=PropertyChanged}"/>
-            
-            <TextBlock Text="{Binding ErrorMessage}" 
-                       Foreground="Red" 
-                       Margin="5,10"
-                       TextWrapping="Wrap"/>
-            
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-                <Button Content="Registruj se" 
-                        Width="120" 
-                        Background="#4CAF50"
-                        Foreground="White"
-                        Command="{Binding RegisterCommand}"
-                        CommandParameter="{Binding ElementName=PasswordBox}"/>
+        <!-- Forma -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="30,20">
                 
-                <Button Content="Otkaži" 
-                        Width="120" 
-                        Background="#f44336"
-                        Foreground="White"
-                        Margin="10,0,0,0"
-                        Command="{Binding CancelCommand}"/>
+                <Label Content="JMBG (13 cifara):" FontWeight="Bold"/>
+                <TextBox Text="{Binding Jmbg, UpdateSourceTrigger=PropertyChanged}" MaxLength="13"/>
+                
+                <Label Content="Email:" FontWeight="Bold"/>
+                <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <Label Content="Lozinka:" FontWeight="Bold"/>
+                <PasswordBox x:Name="PasswordBox"/>
+                
+                <Label Content="Ime:" FontWeight="Bold"/>
+                <TextBox Text="{Binding Ime, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <Label Content="Prezime:" FontWeight="Bold"/>
+                <TextBox Text="{Binding Prezime, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <Label Content="Mobilni telefon:" FontWeight="Bold"/>
+                <TextBox Text="{Binding MobilniTelefon, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <TextBlock Text="{Binding ErrorMessage}" 
+                           Foreground="Red" 
+                           Margin="5,10"
+                           TextWrapping="Wrap"/>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                    <Button Content="Registruj se" 
+                            Width="120" 
+                            Background="#4CAF50"
+                            Foreground="White"
+                            Command="{Binding RegisterCommand}"
+                            CommandParameter="{Binding ElementName=PasswordBox}"/>
+                    
+                    <Button Content="Otkaži" 
+                            Width="120" 
+                            Background="#f44336"
+                            Foreground="White"
+                            Command="{Binding CancelCommand}"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

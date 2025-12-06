@@ -8,7 +8,10 @@ namespace HotelReservationSystem.Repositories
         List<Korisnik> GetAll();
         Korisnik? GetByJmbg(string jmbg);
         Korisnik? GetByEmail(string email);
-        void Add(Korisnik korisnik);
-        void Save();
+        bool Add(Korisnik korisnik);
+        bool Update(Korisnik korisnik);
+        bool Delete(string jmbg);
+        void SaveToFile();
+        void LoadFromFile();
     }
 }

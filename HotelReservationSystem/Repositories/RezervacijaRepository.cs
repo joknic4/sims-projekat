@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,48 +9,147 @@ namespace HotelReservationSystem.Repositories
 {
     public class RezervacijaRepository : IRezervacijaRepository
     {
-        private readonly string filePath = "Data/rezervacije.json";
         private List<Rezervacija> rezervacije;
-        
-        public RezervacijaRepository()
+        private readonly string filePath;
+
+        public RezervacijaRepository(string filePath)
         {
+            this.filePath = filePath;
             rezervacije = new List<Rezervacija>();
-            Load();
+            LoadFromFile();
         }
-        
+
         public List<Rezervacija> GetAll()
         {
-            return rezervacije;
+            return new List<Rezervacija>(rezervacije);
         }
-        
-        public List<Rezervacija> GetByGost(string jmbgGosta)
-        {
-            return rezervacije.Where(r => r.GetJmbgGosta() == jmbgGosta).ToList();
-        }
-        
+
         public Rezervacija? GetById(string id)
         {
             return rezervacije.FirstOrDefault(r => r.GetId() == id);
         }
-        
-        public void Add(Rezervacija rezervacija)
+
+        public List<Rezervacija> GetByGost(string jmbgGosta)
         {
+            return rezervacije.Where(r => r.GetJmbgGosta() == jmbgGosta).ToList();
+        }
+
+        public List<Rezervacija> GetByApartman(string idApartmana)
+        {
+            return rezervacije.Where(r => r.GetIdApartmana() == idApartmana).ToList();
+        }
+
+        public bool Add(Rezervacija rezervacija)
+        {
+            if (rezervacija == null)
+                return false;
+
+            if (GetById(rezervacija.GetId()) != null)
+                return false;
+
             rezervacije.Add(rezervacija);
+            SaveToFile();
+            return true;
         }
-        
-        public void Save()
+
+        public bool Update(Rezervacija rezervacija)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? "Data");
-            string json = JsonConvert.SerializeObject(rezervacije, Formatting.Indented);
-            File.WriteAllText(filePath, json);
+            if (rezervacija == null)
+                return false;
+
+            var existing = GetById(rezervacija.GetId());
+            if (existing == null)
+                return false;
+
+            rezervacije.Remove(existing);
+            rezervacije.Add(rezervacija);
+            SaveToFile();
+            return true;
         }
-        
-        private void Load()
+
+        public bool Delete(string id)
         {
-            if (File.Exists(filePath))
+            var rezervacija = GetById(id);
+            if (rezervacija == null)
+                return false;
+
+            rezervacije.Remove(rezervacija);
+            SaveToFile();
+            return true;
+        }
+
+        public void SaveToFile()
+        {
+            try
             {
-                string json = File.ReadAllText(filePath);
-                rezervacije = JsonConvert.DeserializeObject<List<Rezervacija>>(json) ?? new List<Rezervacija>();
+                var directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                var data = rezervacije.Select(r => new
+                {
+                    Id = r.GetId(),
+                    JmbgGosta = r.GetJmbgGosta(),
+                    IdApartmana = r.GetIdApartmana(),
+                    DatumOd = r.GetDatumOd().ToString("yyyy-MM-dd"),
+                    DatumDo = r.GetDatumDo().ToString("yyyy-MM-dd"),
+                    Status = r.GetStatus().ToString(),
+                    RazlogOdbijanja = r.GetRazlogOdbijanja()
+                }).ToList();
+
+                var json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                File.WriteAllText(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Greška pri čuvanju rezervacija: {ex.Message}");
+            }
+        }
+
+        public void LoadFromFile()
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    rezervacije = new List<Rezervacija>();
+                    return;
+                }
+
+                var json = File.ReadAllText(filePath);
+                var data = JsonConvert.DeserializeAnonymousType(json, new[]
+                {
+                    new
+                    {
+                        Id = "",
+                        JmbgGosta = "",
+                        IdApartmana = "",
+                        DatumOd = "",
+                        DatumDo = "",
+                        Status = "",
+                        RazlogOdbijanja = ""
+                    }
+                });
+
+                if (data != null)
+                {
+                    rezervacije = data.Select(d => new Rezervacija(
+                        d.Id,
+                        d.JmbgGosta,
+                        d.IdApartmana,
+                        DateTime.Parse(d.DatumOd),
+                        DateTime.Parse(d.DatumDo),
+                        Enum.Parse<StatusRezervacije>(d.Status),
+                        d.RazlogOdbijanja
+                    )).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Greška pri učitavanju rezervacija: {ex.Message}");
+                rezervacije = new List<Rezervacija>();
             }
         }
     }

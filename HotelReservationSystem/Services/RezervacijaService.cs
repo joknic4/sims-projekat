@@ -9,74 +9,154 @@ namespace HotelReservationSystem.Services
     public class RezervacijaService
     {
         private readonly IRezervacijaRepository rezervacijaRepository;
-        
-        public RezervacijaService(IRezervacijaRepository repository)
+        private readonly ApartmanService apartmanService;
+        private readonly IHotelRepository hotelRepository;
+        private readonly IApartmanRepository apartmanRepository;
+
+        public RezervacijaService(IRezervacijaRepository rezervacijaRepository, 
+                                 ApartmanService apartmanService,
+                                 IHotelRepository hotelRepository,
+                                 IApartmanRepository apartmanRepository)
         {
-            rezervacijaRepository = repository;
+            this.rezervacijaRepository = rezervacijaRepository;
+            this.apartmanService = apartmanService;
+            this.hotelRepository = hotelRepository;
+            this.apartmanRepository = apartmanRepository;
         }
-        
-        public bool KreirajRezervaciju(string jmbgGosta, string imeApartmana, string sifraHotela, DateTime datum)
+
+        public List<Rezervacija> GetAllRezervacije()
         {
-            // Proveri da li je apartman zauzet
-            var postojece = rezervacijaRepository.GetAll()
-                .Where(r => r.GetImeApartmana() == imeApartmana && 
-                           r.GetSifraHotela() == sifraHotela &&
-                           r.GetDatum().Date == datum.Date &&
-                           r.GetStatus() != StatusRezervacije.Odbijeno)
-                .ToList();
-            
-            if (postojece.Count > 0)
-            {
-                return false; // Apartman zauzet
-            }
-            
-            var rezervacija = new Rezervacija(jmbgGosta, imeApartmana, sifraHotela, datum);
-            rezervacijaRepository.Add(rezervacija);
-            rezervacijaRepository.Save();
-            
-            return true;
+            return rezervacijaRepository.GetAll();
         }
-        
-        public List<Rezervacija> GetRezervacijeGosta(string jmbgGosta)
+
+        public Rezervacija? GetRezervacijaById(string id)
+        {
+            return rezervacijaRepository.GetById(id);
+        }
+
+        public List<Rezervacija> GetRezervacijeByGost(string jmbgGosta)
         {
             return rezervacijaRepository.GetByGost(jmbgGosta);
         }
-        
-        public void PotvrdiRezervaciju(string id)
+
+        public List<Rezervacija> GetRezervacijeByApartman(string idApartmana)
         {
-            var rezervacija = rezervacijaRepository.GetById(id);
-            if (rezervacija != null)
-            {
-                rezervacija.Potvrdi();
-                rezervacijaRepository.Save();
-            }
+            return rezervacijaRepository.GetByApartman(idApartmana);
         }
-        
-        public void OdbijiRezervaciju(string id, string razlog)
+
+        public bool CreateRezervacija(Rezervacija rezervacija)
         {
-            var rezervacija = rezervacijaRepository.GetById(id);
-            if (rezervacija != null)
+            if (rezervacija == null)
+                return false;
+
+            if (rezervacija.GetDatumOd() < DateTime.Today)
+                throw new ArgumentException("Datum početka ne može biti u prošlosti");
+
+            if (rezervacija.GetDatumDo() < rezervacija.GetDatumOd())
+                throw new ArgumentException("Datum kraja ne može biti pre datuma početka");
+
+            // Provera dostupnosti apartmana
+            if (!apartmanService.CheckAvailability(rezervacija.GetIdApartmana(), 
+                                                   rezervacija.GetDatumOd(), 
+                                                   rezervacija.GetDatumDo()))
             {
-                rezervacija.Odbij(razlog);
-                rezervacijaRepository.Save();
+                throw new InvalidOperationException("Apartman nije dostupan za izabrane datume");
             }
+
+            return rezervacijaRepository.Add(rezervacija);
         }
-        
-        public void OtkaziRezervaciju(string id)
+
+        public bool UpdateRezervacija(Rezervacija rezervacija)
         {
-            var rezervacija = rezervacijaRepository.GetById(id);
-            if (rezervacija != null && 
-                (rezervacija.GetStatus() == StatusRezervacije.NaCekanju || 
-                 rezervacija.GetStatus() == StatusRezervacije.Potvrdjeno))
+            if (rezervacija == null)
+                return false;
+
+            return rezervacijaRepository.Update(rezervacija);
+        }
+
+        public bool DeleteRezervacija(string id)
+        {
+            return rezervacijaRepository.Delete(id);
+        }
+
+        public bool ApproveRezervacija(string id)
+        {
+            var rezervacija = GetRezervacijaById(id);
+            if (rezervacija == null)
+                return false;
+
+            if (rezervacija.GetStatus() != StatusRezervacije.NaCekanju)
+                return false;
+
+            // Ponovo proveriti dostupnost pre potvrde
+            if (!apartmanService.CheckAvailability(rezervacija.GetIdApartmana(),
+                                                   rezervacija.GetDatumOd(),
+                                                   rezervacija.GetDatumDo()))
             {
-                rezervacija.Otkazi();
-                rezervacijaRepository.Save();
+                return false;
             }
+
+            rezervacija.SetStatus(StatusRezervacije.Potvrdjeno);
+            return UpdateRezervacija(rezervacija);
         }
-        
-        public List<Rezervacija> FilterByStatus(List<Rezervacija> rezervacije, StatusRezervacije status)
+
+        public bool RejectRezervacija(string id, string razlog)
         {
+            var rezervacija = GetRezervacijaById(id);
+            if (rezervacija == null)
+                return false;
+
+            if (rezervacija.GetStatus() != StatusRezervacije.NaCekanju)
+                return false;
+
+            rezervacija.SetStatus(StatusRezervacije.Odbijeno);
+            rezervacija.SetRazlogOdbijanja(razlog);
+            return UpdateRezervacija(rezervacija);
+        }
+
+        public bool CancelRezervacija(string id)
+        {
+            var rezervacija = GetRezervacijaById(id);
+            if (rezervacija == null)
+                return false;
+
+            if (rezervacija.GetStatus() != StatusRezervacije.NaCekanju && 
+                rezervacija.GetStatus() != StatusRezervacije.Potvrdjeno)
+                return false;
+
+            rezervacija.SetStatus(StatusRezervacije.Otkazano);
+            return UpdateRezervacija(rezervacija);
+        }
+
+        public List<Rezervacija> GetRezervacijeByStatus(StatusRezervacije status, string? jmbgGosta = null)
+        {
+            var rezervacije = jmbgGosta != null 
+                ? GetRezervacijeByGost(jmbgGosta) 
+                : GetAllRezervacije();
+
             return rezervacije.Where(r => r.GetStatus() == status).ToList();
+        }
+
+        public List<Rezervacija> GetRezervacijeForVlasnik(string jmbgVlasnika)
+        {
+            var hoteli = hotelRepository.GetByVlasnik(jmbgVlasnika)
+                .Where(h => h.GetStatus() == StatusHotela.Odobren)
+                .ToList();
+
+            var apartmaniIds = new List<string>();
+            foreach (var hotel in hoteli)
+            {
+                var apartmani = apartmanRepository.GetByHotel(hotel.GetSifra());
+                apartmaniIds.AddRange(apartmani.Select(a => a.GetId()));
+            }
+
+            var sveRezervacije = GetAllRezervacije();
+            return sveRezervacije.Where(r => apartmaniIds.Contains(r.GetIdApartmana())).ToList();
+        }
+
+        public string GenerateRezervacijaId()
+        {
+            return Guid.NewGuid().ToString();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using HotelReservationSystem.Repositories;
 using HotelReservationSystem.Services;
 
@@ -7,6 +8,7 @@ namespace HotelReservationSystem.Helpers
     public class ServiceLocator
     {
         private static ServiceLocator? instance;
+        private static readonly object lockObject = new object();
 
         public AuthService AuthService { get; private set; }
         public KorisnikService KorisnikService { get; private set; }
@@ -16,18 +18,25 @@ namespace HotelReservationSystem.Helpers
 
         private ServiceLocator()
         {
+            // Kreiranje Data direktorijuma ako ne postoji
+            string dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
+            if (!Directory.Exists(dataPath))
+            {
+                Directory.CreateDirectory(dataPath);
+            }
+
             // Inicijalizacija repository-ja
-            var korisnikRepo = new KorisnikRepository();
-            var hotelRepo = new HotelRepository();
-            var apartmanRepo = new ApartmanRepository();
-            var rezervacijaRepo = new RezervacijaRepository();
+            var korisnikRepo = new KorisnikRepository(Path.Combine(dataPath, "korisnici.json"));
+            var hotelRepo = new HotelRepository(Path.Combine(dataPath, "hoteli.json"));
+            var apartmanRepo = new ApartmanRepository(Path.Combine(dataPath, "apartmani.json"));
+            var rezervacijaRepo = new RezervacijaRepository(Path.Combine(dataPath, "rezervacije.json"));
 
             // Inicijalizacija servisa
             AuthService = new AuthService(korisnikRepo);
             KorisnikService = new KorisnikService(korisnikRepo);
-            HotelService = new HotelService(hotelRepo);
-            ApartmanService = new ApartmanService(apartmanRepo);
-            RezervacijaService = new RezervacijaService(rezervacijaRepo);
+            ApartmanService = new ApartmanService(apartmanRepo, rezervacijaRepo);
+            HotelService = new HotelService(hotelRepo, apartmanRepo);
+            RezervacijaService = new RezervacijaService(rezervacijaRepo, ApartmanService, hotelRepo, apartmanRepo);
         }
 
         public static ServiceLocator Instance
@@ -36,7 +45,13 @@ namespace HotelReservationSystem.Helpers
             {
                 if (instance == null)
                 {
-                    instance = new ServiceLocator();
+                    lock (lockObject)
+                    {
+                        if (instance == null)
+                        {
+                            instance = new ServiceLocator();
+                        }
+                    }
                 }
                 return instance;
             }

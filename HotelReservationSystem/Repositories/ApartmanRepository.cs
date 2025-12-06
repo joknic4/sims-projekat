@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,43 +9,139 @@ namespace HotelReservationSystem.Repositories
 {
     public class ApartmanRepository : IApartmanRepository
     {
-        private readonly string filePath = "Data/apartmani.json";
         private List<Apartman> apartmani;
-        
-        public ApartmanRepository()
+        private readonly string filePath;
+
+        public ApartmanRepository(string filePath)
         {
+            this.filePath = filePath;
             apartmani = new List<Apartman>();
-            Load();
+            LoadFromFile();
         }
-        
+
         public List<Apartman> GetAll()
         {
-            return apartmani;
+            return new List<Apartman>(apartmani);
         }
-        
+
+        public Apartman? GetById(string id)
+        {
+            return apartmani.FirstOrDefault(a => a.GetId() == id);
+        }
+
         public List<Apartman> GetByHotel(string sifraHotela)
         {
             return apartmani.Where(a => a.GetSifraHotela() == sifraHotela).ToList();
         }
-        
-        public void Add(Apartman apartman)
+
+        public bool Add(Apartman apartman)
         {
+            if (apartman == null)
+                return false;
+
+            if (GetById(apartman.GetId()) != null)
+                return false;
+
             apartmani.Add(apartman);
+            SaveToFile();
+            return true;
         }
-        
-        public void Save()
+
+        public bool Update(Apartman apartman)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? "Data");
-            string json = JsonConvert.SerializeObject(apartmani, Formatting.Indented);
-            File.WriteAllText(filePath, json);
+            if (apartman == null)
+                return false;
+
+            var existing = GetById(apartman.GetId());
+            if (existing == null)
+                return false;
+
+            apartmani.Remove(existing);
+            apartmani.Add(apartman);
+            SaveToFile();
+            return true;
         }
-        
-        private void Load()
+
+        public bool Delete(string id)
         {
-            if (File.Exists(filePath))
+            var apartman = GetById(id);
+            if (apartman == null)
+                return false;
+
+            apartmani.Remove(apartman);
+            SaveToFile();
+            return true;
+        }
+
+        public void SaveToFile()
+        {
+            try
             {
-                string json = File.ReadAllText(filePath);
-                apartmani = JsonConvert.DeserializeObject<List<Apartman>>(json) ?? new List<Apartman>();
+                var directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                var data = apartmani.Select(a => new
+                {
+                    Id = a.GetId(),
+                    Ime = a.GetIme(),
+                    Opis = a.GetOpis(),
+                    BrojSoba = a.GetBrojSoba(),
+                    MaxBrojGostiju = a.GetMaxBrojGostiju(),
+                    SifraHotela = a.GetSifraHotela()
+                }).ToList();
+
+                var json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                File.WriteAllText(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Greška pri čuvanju apartmana: {ex.Message}");
+            }
+        }
+
+        public void LoadFromFile()
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    apartmani = new List<Apartman>();
+                    return;
+                }
+
+                var json = File.ReadAllText(filePath);
+                var data = JsonConvert.DeserializeAnonymousType(json, new[]
+                {
+                    new
+                    {
+                        Id = "",
+                        Ime = "",
+                        Opis = "",
+                        BrojSoba = 0,
+                        MaxBrojGostiju = 0,
+                        SifraHotela = ""
+                    }
+                });
+
+                if (data != null)
+                {
+                    apartmani = data.Select(d => new Apartman(
+                        d.Id,
+                        d.Ime,
+                        d.Opis,
+                        d.BrojSoba,
+                        d.MaxBrojGostiju,
+                        d.SifraHotela
+                    )).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Greška pri učitavanju apartmana: {ex.Message}");
+                apartmani = new List<Apartman>();
             }
         }
     }

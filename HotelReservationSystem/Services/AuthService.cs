@@ -1,3 +1,4 @@
+using System;
 using HotelReservationSystem.Models;
 using HotelReservationSystem.Repositories;
 
@@ -7,39 +8,68 @@ namespace HotelReservationSystem.Services
     {
         private readonly IKorisnikRepository korisnikRepository;
         private Korisnik? trenutniKorisnik;
-        
-        public AuthService(IKorisnikRepository repository)
+
+        public AuthService(IKorisnikRepository korisnikRepository)
         {
-            korisnikRepository = repository;
+            this.korisnikRepository = korisnikRepository;
             trenutniKorisnik = null;
         }
-        
-        public bool Login(string email, string lozinka)
+
+        public Korisnik? Login(string email, string lozinka)
         {
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(lozinka))
+                return null;
+
             var korisnik = korisnikRepository.GetByEmail(email);
-            
-            if (korisnik != null && korisnik.GetLozinka() == lozinka)
-            {
-                trenutniKorisnik = korisnik;
-                return true;
-            }
-            
-            return false;
+            if (korisnik == null)
+                return null;
+
+            if (korisnik.GetLozinka() != lozinka)
+                return null;
+
+            trenutniKorisnik = korisnik;
+            return korisnik;
         }
-        
+
         public void Logout()
         {
             trenutniKorisnik = null;
         }
-        
-        public Korisnik? GetTrenutniKorisnik()
+
+        public Korisnik? GetCurrentUser()
         {
             return trenutniKorisnik;
         }
-        
-        public bool JePrijavljen()
+
+        public bool IsLoggedIn()
         {
             return trenutniKorisnik != null;
+        }
+
+        public bool RegisterGost(Korisnik korisnik)
+        {
+            if (korisnik == null)
+                return false;
+
+            if (korisnik.GetTipKorisnika() != KorisnikTip.Gost)
+                return false;
+
+            return korisnikRepository.Add(korisnik);
+        }
+
+        public bool IsAdministrator()
+        {
+            return trenutniKorisnik?.GetTipKorisnika() == KorisnikTip.Administrator;
+        }
+
+        public bool IsVlasnik()
+        {
+            return trenutniKorisnik?.GetTipKorisnika() == KorisnikTip.Vlasnik;
+        }
+
+        public bool IsGost()
+        {
+            return trenutniKorisnik?.GetTipKorisnika() == KorisnikTip.Gost;
         }
     }
 }

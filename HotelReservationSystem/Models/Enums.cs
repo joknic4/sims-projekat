@@ -6,7 +6,7 @@ namespace HotelReservationSystem.Models
         Gost,
         Vlasnik
     }
-    
+
     public enum StatusRezervacije
     {
         NaCekanju,
@@ -14,11 +14,11 @@ namespace HotelReservationSystem.Models
         Odbijeno,
         Otkazano
     }
-    
-    // Dodato za potrebe praćenja statusa hotela
+
     public enum StatusHotela
     {
         NaCekanju,
-        Odobren
+        Odobren,
+        Odbijen
     }
 }

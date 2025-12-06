@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 
 namespace HotelReservationSystem.Helpers
 {
-    // Bazna klasa za ViewModele - omogućava data binding
     public class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;

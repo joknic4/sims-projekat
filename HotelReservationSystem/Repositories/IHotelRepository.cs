@@ -8,8 +8,10 @@ namespace HotelReservationSystem.Repositories
         List<Hotel> GetAll();
         Hotel? GetBySifra(string sifra);
         List<Hotel> GetByVlasnik(string jmbgVlasnika);
-        void Add(Hotel hotel);
-        void Update(Hotel hotel);
-        void Save();
+        bool Add(Hotel hotel);
+        bool Update(Hotel hotel);
+        bool Delete(string sifra);
+        void SaveToFile();
+        void LoadFromFile();
     }
 }

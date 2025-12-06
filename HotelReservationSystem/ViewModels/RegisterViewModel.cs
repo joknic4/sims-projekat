@@ -66,34 +66,10 @@ namespace HotelReservationSystem.ViewModels
             {
                 ErrorMessage = string.Empty;
 
-                if (string.IsNullOrWhiteSpace(Jmbg))
-                {
-                    ErrorMessage = "Unesite JMBG";
-                    return;
-                }
-
-                if (Jmbg.Length != 13)
-                {
-                    ErrorMessage = "JMBG mora imati tačno 13 cifara";
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(Email))
-                {
-                    ErrorMessage = "Unesite email";
-                    return;
-                }
-
                 var passwordBox = parameter as System.Windows.Controls.PasswordBox;
                 if (passwordBox == null || string.IsNullOrWhiteSpace(passwordBox.Password))
                 {
                     ErrorMessage = "Unesite lozinku";
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(Ime) || string.IsNullOrWhiteSpace(Prezime))
-                {
-                    ErrorMessage = "Unesite ime i prezime";
                     return;
                 }
 
@@ -108,6 +84,7 @@ namespace HotelReservationSystem.ViewModels
                     MessageBox.Show("Uspešno ste se registrovali! Možete se prijaviti.", "Registracija", 
                                   MessageBoxButton.OK, MessageBoxImage.Information);
                     
+                    // Zatvaranje prozora
                     Application.Current.Windows[1]?.Close();
                 }
                 else
