@@ -2,11 +2,29 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:HotelReservationSystem.Views"
+        xmlns:helpers="clr-namespace:HotelReservationSystem.Helpers"
         xmlns:vm="clr-namespace:HotelReservationSystem.ViewModels"
         Title="Portal za goste" 
         Height="700" 
         Width="1000"
         WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <!-- Value Converters -->
+        <helpers:HotelSifraConverter x:Key="HotelSifraConverter"/>
+        <helpers:HotelImeConverter x:Key="HotelImeConverter"/>
+        <helpers:HotelGodinaConverter x:Key="HotelGodinaConverter"/>
+        <helpers:HotelZvezdiceConverter x:Key="HotelZvezdiceConverter"/>
+        <helpers:ApartmanImeConverter x:Key="ApartmanImeConverter"/>
+        <helpers:ApartmanOpisConverter x:Key="ApartmanOpisConverter"/>
+        <helpers:ApartmanSobeConverter x:Key="ApartmanSobeConverter"/>
+        <helpers:ApartmanGostijuConverter x:Key="ApartmanGostijuConverter"/>
+        <helpers:RezervacijaIdConverter x:Key="RezervacijaIdConverter"/>
+        <helpers:RezervacijaDatumOdConverter x:Key="RezervacijaDatumOdConverter"/>
+        <helpers:RezervacijaDatumDoConverter x:Key="RezervacijaDatumDoConverter"/>
+        <helpers:RezervacijaStatusConverter x:Key="RezervacijaStatusConverter"/>
+        <helpers:RezervacijaRazlogConverter x:Key="RezervacijaRazlogConverter"/>
+    </Window.Resources>
     
     <Window.DataContext>
         <vm:GostViewModel/>
@@ -177,21 +195,4 @@
             <TextBlock Text="{Binding StatusMessage}" FontSize="12"/>
         </Border>
     </Grid>
-    
-    <Window.Resources>
-        <!-- Value Converters -->
-        <local:HotelSifraConverter x:Key="HotelSifraConverter"/>
-        <local:HotelImeConverter x:Key="HotelImeConverter"/>
-        <local:HotelGodinaConverter x:Key="HotelGodinaConverter"/>
-        <local:HotelZvezdiceConverter x:Key="HotelZvezdiceConverter"/>
-        <local:ApartmanImeConverter x:Key="ApartmanImeConverter"/>
-        <local:ApartmanOpisConverter x:Key="ApartmanOpisConverter"/>
-        <local:ApartmanSobeConverter x:Key="ApartmanSobeConverter"/>
-        <local:ApartmanGostijuConverter x:Key="ApartmanGostijuConverter"/>
-        <local:RezervacijaIdConverter x:Key="RezervacijaIdConverter"/>
-        <local:RezervacijaDatumOdConverter x:Key="RezervacijaDatumOdConverter"/>
-        <local:RezervacijaDatumDoConverter x:Key="RezervacijaDatumDoConverter"/>
-        <local:RezervacijaStatusConverter x:Key="RezervacijaStatusConverter"/>
-        <local:RezervacijaRazlogConverter x:Key="RezervacijaRazlogConverter"/>
-    </Window.Resources>
 </Window>

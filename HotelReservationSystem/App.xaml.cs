@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace HotelReservationSystem.Models
+namespace HotelReservationSystem
 {
     public partial class App : Application
     {

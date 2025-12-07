@@ -2,11 +2,26 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:HotelReservationSystem.Views"
+        xmlns:helpers="clr-namespace:HotelReservationSystem.Helpers"
         xmlns:vm="clr-namespace:HotelReservationSystem.ViewModels"
         Title="Portal za vlasnike" 
         Height="700" 
         Width="1000"
         WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <helpers:HotelSifraConverter x:Key="HotelSifraConverter"/>
+        <helpers:HotelImeConverter x:Key="HotelImeConverter"/>
+        <helpers:HotelZvezdiceConverter x:Key="HotelZvezdiceConverter"/>
+        <helpers:HotelStatusConverter x:Key="HotelStatusConverter"/>
+        <helpers:ApartmanImeConverter x:Key="ApartmanImeConverter"/>
+        <helpers:ApartmanSobeConverter x:Key="ApartmanSobeConverter"/>
+        <helpers:ApartmanGostijuConverter x:Key="ApartmanGostijuConverter"/>
+        <helpers:RezervacijaIdConverter x:Key="RezervacijaIdConverter"/>
+        <helpers:RezervacijaDatumOdConverter x:Key="RezervacijaDatumOdConverter"/>
+        <helpers:RezervacijaDatumDoConverter x:Key="RezervacijaDatumDoConverter"/>
+        <helpers:RezervacijaStatusConverter x:Key="RezervacijaStatusConverter"/>
+    </Window.Resources>
     
     <Window.DataContext>
         <vm:VlasnikViewModel/>
@@ -162,18 +177,4 @@
             <TextBlock Text="{Binding StatusMessage}" FontSize="12"/>
         </Border>
     </Grid>
-    
-    <Window.Resources>
-        <local:HotelSifraConverter x:Key="HotelSifraConverter"/>
-        <local:HotelImeConverter x:Key="HotelImeConverter"/>
-        <local:HotelZvezdiceConverter x:Key="HotelZvezdiceConverter"/>
-        <local:HotelStatusConverter x:Key="HotelStatusConverter"/>
-        <local:ApartmanImeConverter x:Key="ApartmanImeConverter"/>
-        <local:ApartmanSobeConverter x:Key="ApartmanSobeConverter"/>
-        <local:ApartmanGostijuConverter x:Key="ApartmanGostijuConverter"/>
-        <local:RezervacijaIdConverter x:Key="RezervacijaIdConverter"/>
-        <local:RezervacijaDatumOdConverter x:Key="RezervacijaDatumOdConverter"/>
-        <local:RezervacijaDatumDoConverter x:Key="RezervacijaDatumDoConverter"/>
-        <local:RezervacijaStatusConverter x:Key="RezervacijaStatusConverter"/>
-    </Window.Resources>
 </Window>
