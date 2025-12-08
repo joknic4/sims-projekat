@@ -7,7 +7,7 @@ using HotelReservationSystem.Models;
 
 namespace HotelReservationSystem.ViewModels
 {
-    public class AdminViewModel : ViewModelBase
+    public class AdminViewModel : BaseHotelViewModel
     {
         private ObservableCollection<Korisnik> vlasnike = new();
         private ObservableCollection<Hotel> hoteli = new();
@@ -23,8 +23,6 @@ namespace HotelReservationSystem.ViewModels
         private int hotelGodina = DateTime.Now.Year;
         private int hotelZvezdice = 3;
         private string hotelVlasnikJmbg = string.Empty;
-        
-        private string statusMessage = string.Empty;
 
         public ObservableCollection<Korisnik> Vlasnike
         {
@@ -98,12 +96,6 @@ namespace HotelReservationSystem.ViewModels
             set => SetProperty(ref hotelVlasnikJmbg, value);
         }
 
-        public string StatusMessage
-        {
-            get => statusMessage;
-            set => SetProperty(ref statusMessage, value);
-        }
-
         public ICommand RegisterVlasnikCommand { get; }
         public ICommand CreateHotelCommand { get; }
         public ICommand GenerateHotelCodeCommand { get; }
@@ -111,7 +103,7 @@ namespace HotelReservationSystem.ViewModels
         public ICommand LoadHoteliCommand { get; }
         public ICommand LogoutCommand { get; }
 
-        public AdminViewModel()
+        public AdminViewModel() : base()
         {
             RegisterVlasnikCommand = new RelayCommand(RegisterVlasnik);
             CreateHotelCommand = new RelayCommand(_ => CreateHotel());
@@ -122,6 +114,7 @@ namespace HotelReservationSystem.ViewModels
 
             LoadVlasnike();
             GenerateHotelCode();
+            LoadSviHoteli();
         }
 
         private void RegisterVlasnik(object? parameter)

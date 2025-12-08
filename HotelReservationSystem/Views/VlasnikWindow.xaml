@@ -5,16 +5,19 @@
         xmlns:helpers="clr-namespace:HotelReservationSystem.Helpers"
         xmlns:vm="clr-namespace:HotelReservationSystem.ViewModels"
         Title="Portal za vlasnike" 
-        Height="700" 
-        Width="1000"
+        Height="750" 
+        Width="1100"
         WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
+        <!-- Value Converters -->
         <helpers:HotelSifraConverter x:Key="HotelSifraConverter"/>
         <helpers:HotelImeConverter x:Key="HotelImeConverter"/>
+        <helpers:HotelGodinaConverter x:Key="HotelGodinaConverter"/>
         <helpers:HotelZvezdiceConverter x:Key="HotelZvezdiceConverter"/>
         <helpers:HotelStatusConverter x:Key="HotelStatusConverter"/>
         <helpers:ApartmanImeConverter x:Key="ApartmanImeConverter"/>
+        <helpers:ApartmanOpisConverter x:Key="ApartmanOpisConverter"/>
         <helpers:ApartmanSobeConverter x:Key="ApartmanSobeConverter"/>
         <helpers:ApartmanGostijuConverter x:Key="ApartmanGostijuConverter"/>
         <helpers:RezervacijaIdConverter x:Key="RezervacijaIdConverter"/>
@@ -34,7 +37,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
-        <Border Grid.Row="0" Background="#2196F3" Padding="15">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF9800" Padding="15">
             <Grid>
                 <TextBlock Text="PORTAL ZA VLASNIKE" 
                            FontSize="18" 
@@ -50,78 +54,189 @@
             </Grid>
         </Border>
         
+        <!-- TabControl -->
         <TabControl Grid.Row="1" Margin="10">
+            
+            <!-- Tab za prikaz svih hotela -->
+            <TabItem Header="Pregled svih hotela">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="200"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Pretraga -->
+                    <GroupBox Header="Pretraga hotela" Grid.Row="0" Margin="10">
+                        <StackPanel>
+                            <Grid Margin="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Label Content="Kriterijum:" Grid.Column="0" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" SelectedItem="{Binding SearchCriteria}" Margin="5">
+                                    <ComboBoxItem Content="Ime" IsSelected="True"/>
+                                    <ComboBoxItem Content="Godina"/>
+                                    <ComboBoxItem Content="Zvezdice"/>
+                                    <ComboBoxItem Content="Apartmani"/>
+                                </ComboBox>
+                                
+                                <TextBox Grid.Column="2" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                         Margin="5" VerticalContentAlignment="Center"/>
+                                
+                                <Button Grid.Column="3" Content="Pretraži" Command="{Binding SearchHoteliCommand}" Width="100" Margin="5"/>
+                            </Grid>
+                            
+                            <TextBlock Text="* Za pretragu po apartmanima: unesite samo broj soba (npr. '2') ili broj soba i gostiju sa operatorom (npr. '2 &amp; 3' ili '2 | 4')" 
+                                       FontSize="10" Margin="5" Foreground="Gray" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </GroupBox>
+                    
+                    <!-- Sortiranje -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10,0">
+                        <Label Content="Sortiranje po zvezdicama:" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <ComboBox SelectedItem="{Binding SortOrder}" Width="120" Margin="5">
+                            <ComboBoxItem Content="Rastuće" IsSelected="True"/>
+                            <ComboBoxItem Content="Opadajuće"/>
+                        </ComboBox>
+                        <Button Content="Sortiraj" Command="{Binding SortHoteliCommand}" Margin="5"/>
+                        <Button Content="Prikaži sve" Command="{Binding LoadSviHoteliCommand}" Margin="5"/>
+                    </StackPanel>
+                    
+                    <DataGrid Grid.Row="2" 
+                              ItemsSource="{Binding SviHoteli}"
+                              SelectedItem="{Binding SelectedHotelZaPrikaz}"
+                              Margin="10"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Šifra" Binding="{Binding Path=., Converter={StaticResource HotelSifraConverter}}" Width="100"/>
+                            <DataGridTextColumn Header="Ime" Binding="{Binding Path=., Converter={StaticResource HotelImeConverter}}" Width="*"/>
+                            <DataGridTextColumn Header="Godina izgradnje" Binding="{Binding Path=., Converter={StaticResource HotelGodinaConverter}}" Width="120"/>
+                            <DataGridTextColumn Header="Zvezdice" Binding="{Binding Path=., Converter={StaticResource HotelZvezdiceConverter}}" Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <GroupBox Grid.Row="3" Header="Apartmani izabranog hotela" Margin="10">
+                        <DataGrid ItemsSource="{Binding ApartmaniZaPrikaz}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ime" Binding="{Binding Path=., Converter={StaticResource ApartmanImeConverter}}" Width="150"/>
+                                <DataGridTextColumn Header="Opis" Binding="{Binding Path=., Converter={StaticResource ApartmanOpisConverter}}" Width="*"/>
+                                <DataGridTextColumn Header="Broj soba" Binding="{Binding Path=., Converter={StaticResource ApartmanSobeConverter}}" Width="80"/>
+                                <DataGridTextColumn Header="Max gostiju" Binding="{Binding Path=., Converter={StaticResource ApartmanGostijuConverter}}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
             
             <!-- Tab za upravljanje hotelima -->
             <TabItem Header="Moji hoteli">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="200"/>
+                    </Grid.RowDefinitions>
                     
-                    <Grid Grid.Column="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="200"/>
-                        </Grid.RowDefinitions>
-                        
-                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
-                            <Button Content="Učitaj hotele" Command="{Binding LoadHoteliCommand}"/>
-                            <Button Content="Odobri hotel" Command="{Binding ApproveHotelCommand}" Background="#4CAF50" Foreground="White"/>
-                            <Button Content="Odbij hotel" Command="{Binding RejectHotelCommand}" Background="#f44336" Foreground="White"/>
-                        </StackPanel>
-                        
-                        <DataGrid Grid.Row="1" 
-                                  ItemsSource="{Binding MojiHoteli}"
-                                  SelectedItem="{Binding SelectedHotel}"
-                                  Margin="10">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Šifra" Binding="{Binding Path=., Converter={StaticResource HotelSifraConverter}}" Width="100"/>
-                                <DataGridTextColumn Header="Ime" Binding="{Binding Path=., Converter={StaticResource HotelImeConverter}}" Width="*"/>
-                                <DataGridTextColumn Header="Zvezdice" Binding="{Binding Path=., Converter={StaticResource HotelZvezdiceConverter}}" Width="80"/>
-                                <DataGridTextColumn Header="Status" Binding="{Binding Path=., Converter={StaticResource HotelStatusConverter}}" Width="100"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                        
-                        <GroupBox Grid.Row="2" Header="Apartmani izabranog hotela" Margin="10">
-                            <DataGrid ItemsSource="{Binding Apartmani}">
+                    <GroupBox Header="Lista mojih hotela" Margin="10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <DataGrid Grid.Row="0"
+                                      ItemsSource="{Binding MojiHoteli}"
+                                      SelectedItem="{Binding SelectedHotel}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Ime" Binding="{Binding Path=., Converter={StaticResource ApartmanImeConverter}}" Width="*"/>
-                                    <DataGridTextColumn Header="Sobe" Binding="{Binding Path=., Converter={StaticResource ApartmanSobeConverter}}" Width="60"/>
-                                    <DataGridTextColumn Header="Gostiju" Binding="{Binding Path=., Converter={StaticResource ApartmanGostijuConverter}}" Width="60"/>
+                                    <DataGridTextColumn Header="Šifra" Binding="{Binding Path=., Converter={StaticResource HotelSifraConverter}}" Width="100"/>
+                                    <DataGridTextColumn Header="Ime" Binding="{Binding Path=., Converter={StaticResource HotelImeConverter}}" Width="*"/>
+                                    <DataGridTextColumn Header="Godina" Binding="{Binding Path=., Converter={StaticResource HotelGodinaConverter}}" Width="80"/>
+                                    <DataGridTextColumn Header="Zvezdice" Binding="{Binding Path=., Converter={StaticResource HotelZvezdiceConverter}}" Width="70"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Path=., Converter={StaticResource HotelStatusConverter}}" Width="100"/>
                                 </DataGrid.Columns>
                             </DataGrid>
-                        </GroupBox>
-                    </Grid>
+                            
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+                                <Button Content="Odobri hotel" Command="{Binding ApproveHotelCommand}" 
+                                        Width="120" Margin="5" Background="#4CAF50" Foreground="White"/>
+                                <Button Content="Odbij hotel" Command="{Binding RejectHotelCommand}" 
+                                        Width="120" Margin="5" Background="#f44336" Foreground="White"/>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
                     
-                    <GroupBox Grid.Column="1" Header="Dodaj novi apartman" Margin="10">
-                        <StackPanel Margin="10">
-                            <Label Content="Ime apartmana:" FontWeight="Bold"/>
-                            <TextBox Text="{Binding ApartmanIme, UpdateSourceTrigger=PropertyChanged}"/>
-                            
-                            <Label Content="Opis:" FontWeight="Bold"/>
-                            <TextBox Text="{Binding ApartmanOpis, UpdateSourceTrigger=PropertyChanged}" 
-                                     Height="80" 
-                                     TextWrapping="Wrap" 
-                                     AcceptsReturn="True"/>
-                            
-                            <Label Content="Broj soba:" FontWeight="Bold"/>
-                            <TextBox Text="{Binding ApartmanBrojSoba, UpdateSourceTrigger=PropertyChanged}"/>
-                            
-                            <Label Content="Max broj gostiju:" FontWeight="Bold"/>
-                            <TextBox Text="{Binding ApartmanMaxGostiju, UpdateSourceTrigger=PropertyChanged}"/>
-                            
-                            <Button Content="Kreiraj apartman" 
-                                    Command="{Binding CreateApartmanCommand}"
-                                    Margin="0,20,0,0"
-                                    Background="#4CAF50"
-                                    Foreground="White"
-                                    FontWeight="Bold"/>
-                        </StackPanel>
+                    <GroupBox Grid.Row="1" Header="Apartmani izabranog hotela" Margin="10">
+                        <DataGrid ItemsSource="{Binding Apartmani}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ime" Binding="{Binding Path=., Converter={StaticResource ApartmanImeConverter}}" Width="150"/>
+                                <DataGridTextColumn Header="Opis" Binding="{Binding Path=., Converter={StaticResource ApartmanOpisConverter}}" Width="*"/>
+                                <DataGridTextColumn Header="Broj soba" Binding="{Binding Path=., Converter={StaticResource ApartmanSobeConverter}}" Width="80"/>
+                                <DataGridTextColumn Header="Max gostiju" Binding="{Binding Path=., Converter={StaticResource ApartmanGostijuConverter}}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </GroupBox>
                 </Grid>
+            </TabItem>
+            
+            <!-- Tab za unos apartmana -->
+            <TabItem Header="Unos apartmana">
+                <StackPanel Margin="20">
+                    <GroupBox Header="Kreiranje novog apartmana" Padding="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Label Content="Ime apartmana:" Grid.Row="0" Grid.Column="0"/>
+                            <TextBox Text="{Binding ApartmanIme}" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                            
+                            <Label Content="Opis:" Grid.Row="1" Grid.Column="0"/>
+                            <TextBox Text="{Binding ApartmanOpis}" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                            
+                            <Label Content="Broj soba:" Grid.Row="2" Grid.Column="0"/>
+                            <TextBox Text="{Binding ApartmanBrojSoba}" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                            
+                            <Label Content="Max broj gostiju:" Grid.Row="3" Grid.Column="0"/>
+                            <TextBox Text="{Binding ApartmanMaxGostiju}" Grid.Row="3" Grid.Column="1" Margin="5"/>
+                            
+                            <Button Content="Dodaj apartman" 
+                                    Grid.Row="4" Grid.Column="1"
+                                    Command="{Binding CreateApartmanCommand}"
+                                    Width="150"
+                                    HorizontalAlignment="Left"
+                                    Margin="5,15,5,5"
+                                    Background="#4CAF50"
+                                    Foreground="White"
+                                    Height="35"/>
+                        </Grid>
+                    </GroupBox>
+                    
+                    <TextBlock Text="Napomena: Prvo izaberite hotel u tabu 'Moji hoteli', zatim ovde unesite apartman." 
+                               Margin="10" 
+                               FontStyle="Italic"
+                               Foreground="Gray"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
             </TabItem>
             
             <!-- Tab za rezervacije -->
@@ -135,37 +250,43 @@
                     
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
                         <Label Content="Filter:" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <ComboBox SelectedItem="{Binding StatusFilter}" 
+                        <ComboBox SelectedItem="{Binding StatusFilterRezervacije}" 
                                   Width="150"
                                   VerticalContentAlignment="Center">
                             <ComboBoxItem Content="Sve" IsSelected="True"/>
                             <ComboBoxItem Content="Na čekanju"/>
                             <ComboBoxItem Content="Potvrđeno"/>
                         </ComboBox>
-                        <Button Content="Učitaj" Command="{Binding LoadRezervacijeCommand}" Margin="10,0"/>
+                        <Button Content="Učitaj" 
+                                Command="{Binding LoadRezervacijeCommand}"
+                                Margin="10,0"/>
                     </StackPanel>
                     
                     <DataGrid Grid.Row="1" 
                               ItemsSource="{Binding Rezervacije}"
                               SelectedItem="{Binding SelectedRezervacija}"
-                              Margin="10">
+                              Margin="10"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding Path=., Converter={StaticResource RezervacijaIdConverter}}" Width="100"/>
                             <DataGridTextColumn Header="Datum od" Binding="{Binding Path=., Converter={StaticResource RezervacijaDatumOdConverter}}" Width="100"/>
                             <DataGridTextColumn Header="Datum do" Binding="{Binding Path=., Converter={StaticResource RezervacijaDatumDoConverter}}" Width="100"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Path=., Converter={StaticResource RezervacijaStatusConverter}}" Width="100"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Path=., Converter={StaticResource RezervacijaStatusConverter}}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                     
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10">
                         <Button Content="Potvrdi rezervaciju" 
                                 Command="{Binding ApproveRezervacijaCommand}"
                                 Width="150"
+                                Margin="5"
                                 Background="#4CAF50"
                                 Foreground="White"/>
                         <Button Content="Odbij rezervaciju" 
                                 Command="{Binding RejectRezervacijaCommand}"
                                 Width="150"
+                                Margin="5"
                                 Background="#f44336"
                                 Foreground="White"/>
                     </StackPanel>
@@ -173,6 +294,7 @@
             </TabItem>
         </TabControl>
         
+        <!-- Status bar -->
         <Border Grid.Row="2" Background="#F5F5F5" Padding="10">
             <TextBlock Text="{Binding StatusMessage}" FontSize="12"/>
         </Border>

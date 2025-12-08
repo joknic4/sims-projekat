@@ -103,7 +103,7 @@
 
         <!-- Footer -->
         <Border Grid.Row="2" Background="#F5F5F5" Padding="10">
-            <TextBlock Text="Projekat iz predmeta Specifikacija i modeliranje softvera 2024/2025"
+            <TextBlock Text="Projekat iz predmeta Specifikacija i modeliranje softvera"
                        FontSize="10"
                        HorizontalAlignment="Center"
                        Foreground="Gray"/>

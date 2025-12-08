@@ -8,7 +8,7 @@ using HotelReservationSystem.Models;
 
 namespace HotelReservationSystem.ViewModels
 {
-    public class VlasnikViewModel : ViewModelBase
+    public class VlasnikViewModel : BaseHotelViewModel
     {
         private ObservableCollection<Hotel> mojiHoteli = new();
         private ObservableCollection<Apartman> apartmani = new();
@@ -21,8 +21,7 @@ namespace HotelReservationSystem.ViewModels
         private int apartmanBrojSoba = 1;
         private int apartmanMaxGostiju = 2;
         
-        private string statusMessage = string.Empty;
-        private string statusFilter = "Sve";
+        private string statusFilterRezervacije = "Sve";
 
         public ObservableCollection<Hotel> MojiHoteli
         {
@@ -84,18 +83,12 @@ namespace HotelReservationSystem.ViewModels
             set => SetProperty(ref apartmanMaxGostiju, value);
         }
 
-        public string StatusMessage
+        public string StatusFilterRezervacije
         {
-            get => statusMessage;
-            set => SetProperty(ref statusMessage, value);
-        }
-
-        public string StatusFilter
-        {
-            get => statusFilter;
+            get => statusFilterRezervacije;
             set
             {
-                if (SetProperty(ref statusFilter, value))
+                if (SetProperty(ref statusFilterRezervacije, value))
                 {
                     LoadRezervacije();
                 }
@@ -111,19 +104,20 @@ namespace HotelReservationSystem.ViewModels
         public ICommand RejectRezervacijaCommand { get; }
         public ICommand LogoutCommand { get; }
 
-        public VlasnikViewModel()
+        public VlasnikViewModel() : base()
         {
             LoadHoteliCommand = new RelayCommand(_ => LoadHoteli());
             ApproveHotelCommand = new RelayCommand(_ => ApproveHotel());
             RejectHotelCommand = new RelayCommand(_ => RejectHotel());
             CreateApartmanCommand = new RelayCommand(_ => CreateApartman());
             LoadRezervacijeCommand = new RelayCommand(_ => LoadRezervacije());
-            ApproveRezervacijaCommand = new RelayCommand(ApproveRezervacija);
-            RejectRezervacijaCommand = new RelayCommand(RejectRezervacija);
+            ApproveRezervacijaCommand = new RelayCommand(_ => ApproveRezervacija());
+            RejectRezervacijaCommand = new RelayCommand(_ => RejectRezervacija());
             LogoutCommand = new RelayCommand(_ => Logout());
 
             LoadHoteli();
             LoadRezervacije();
+            LoadSviHoteli();
         }
 
         private void LoadHoteli()
@@ -312,7 +306,7 @@ namespace HotelReservationSystem.ViewModels
                 var rezervacijaService = ServiceLocator.Instance.RezervacijaService;
                 var allRezervacije = rezervacijaService.GetRezervacijeForVlasnik(currentUser.GetJmbg());
 
-                var filtered = StatusFilter switch
+                var filtered = StatusFilterRezervacije switch
                 {
                     "Na čekanju" => allRezervacije.Where(r => r.GetStatus() == StatusRezervacije.NaCekanju).ToList(),
                     "Potvrđeno" => allRezervacije.Where(r => r.GetStatus() == StatusRezervacije.Potvrdjeno).ToList(),
@@ -333,13 +327,20 @@ namespace HotelReservationSystem.ViewModels
             }
         }
 
-        private void ApproveRezervacija(object? parameter)
+        private void ApproveRezervacija()
         {
             try
             {
                 if (SelectedRezervacija == null)
                 {
                     MessageBox.Show("Izaberite rezervaciju", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (SelectedRezervacija.GetStatus() != StatusRezervacije.NaCekanju)
+                {
+                    MessageBox.Show("Možete potvrditi samo rezervacije koje su na čekanju", "Greška", 
+                                  MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -359,16 +360,24 @@ namespace HotelReservationSystem.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = $"Greška: {ex.Message}";
+                MessageBox.Show($"Greška: {ex.Message}", "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void RejectRezervacija(object? parameter)
+        private void RejectRezervacija()
         {
             try
             {
                 if (SelectedRezervacija == null)
                 {
                     MessageBox.Show("Izaberite rezervaciju", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (SelectedRezervacija.GetStatus() != StatusRezervacije.NaCekanju)
+                {
+                    MessageBox.Show("Možete odbiti samo rezervacije koje su na čekanju", "Greška", 
+                                  MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 

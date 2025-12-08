@@ -8,25 +8,15 @@ using HotelReservationSystem.Models;
 
 namespace HotelReservationSystem.ViewModels
 {
-    public class GostViewModel : ViewModelBase
+    public class GostViewModel : BaseHotelViewModel
     {
-        private ObservableCollection<Hotel> hoteli = new();
         private ObservableCollection<Apartman> apartmani = new();
         private ObservableCollection<Rezervacija> rezervacije = new();
-        private Hotel? selectedHotel;
         private Apartman? selectedApartman;
         private Rezervacija? selectedRezervacija;
         private DateTime datumOd = DateTime.Today;
         private DateTime datumDo = DateTime.Today.AddDays(1);
-        private string searchText = string.Empty;
-        private string statusMessage = string.Empty;
         private string statusFilter = "Sve";
-
-        public ObservableCollection<Hotel> Hoteli
-        {
-            get => hoteli;
-            set => SetProperty(ref hoteli, value);
-        }
 
         public ObservableCollection<Apartman> Apartmani
         {
@@ -38,18 +28,6 @@ namespace HotelReservationSystem.ViewModels
         {
             get => rezervacije;
             set => SetProperty(ref rezervacije, value);
-        }
-
-        public Hotel? SelectedHotel
-        {
-            get => selectedHotel;
-            set
-            {
-                if (SetProperty(ref selectedHotel, value) && value != null)
-                {
-                    LoadApartmani(value.GetSifra());
-                }
-            }
         }
 
         public Apartman? SelectedApartman
@@ -76,18 +54,6 @@ namespace HotelReservationSystem.ViewModels
             set => SetProperty(ref datumDo, value);
         }
 
-        public string SearchText
-        {
-            get => searchText;
-            set => SetProperty(ref searchText, value);
-        }
-
-        public string StatusMessage
-        {
-            get => statusMessage;
-            set => SetProperty(ref statusMessage, value);
-        }
-
         public string StatusFilter
         {
             get => statusFilter;
@@ -100,84 +66,19 @@ namespace HotelReservationSystem.ViewModels
             }
         }
 
-        public ICommand LoadHoteliCommand { get; }
-        public ICommand SearchCommand { get; }
         public ICommand CreateRezervacijaCommand { get; }
         public ICommand LoadRezervacijeCommand { get; }
         public ICommand CancelRezervacijaCommand { get; }
         public ICommand LogoutCommand { get; }
 
-        public GostViewModel()
+        public GostViewModel() : base()
         {
-            LoadHoteliCommand = new RelayCommand(_ => LoadHoteli());
-            SearchCommand = new RelayCommand(_ => SearchHoteli());
             CreateRezervacijaCommand = new RelayCommand(_ => CreateRezervacija());
             LoadRezervacijeCommand = new RelayCommand(_ => LoadRezervacije());
             CancelRezervacijaCommand = new RelayCommand(_ => CancelRezervacija());
             LogoutCommand = new RelayCommand(_ => Logout());
 
-            LoadHoteli();
-        }
-
-        private void LoadHoteli()
-        {
-            try
-            {
-                var hotelService = ServiceLocator.Instance.HotelService;
-                var allHotels = hotelService.GetApprovedHotels();
-                
-                Hoteli.Clear();
-                foreach (var hotel in allHotels)
-                {
-                    Hoteli.Add(hotel);
-                }
-                
-                StatusMessage = $"Učitano {Hoteli.Count} hotela";
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Greška: {ex.Message}";
-            }
-        }
-
-        private void SearchHoteli()
-        {
-            try
-            {
-                var hotelService = ServiceLocator.Instance.HotelService;
-                var results = hotelService.SearchHotelsByName(SearchText);
-                
-                Hoteli.Clear();
-                foreach (var hotel in results)
-                {
-                    Hoteli.Add(hotel);
-                }
-                
-                StatusMessage = $"Pronađeno {Hoteli.Count} hotela";
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Greška: {ex.Message}";
-            }
-        }
-
-        private void LoadApartmani(string sifraHotela)
-        {
-            try
-            {
-                var apartmanService = ServiceLocator.Instance.ApartmanService;
-                var allApartmani = apartmanService.GetApartmaniByHotel(sifraHotela);
-                
-                Apartmani.Clear();
-                foreach (var apartman in allApartmani)
-                {
-                    Apartmani.Add(apartman);
-                }
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Greška: {ex.Message}";
-            }
+            LoadSviHoteli();
         }
 
         private void CreateRezervacija()
