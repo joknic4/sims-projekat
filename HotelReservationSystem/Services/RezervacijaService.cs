@@ -55,10 +55,11 @@ namespace HotelReservationSystem.Services
             if (rezervacija.GetDatumDo() < rezervacija.GetDatumOd())
                 throw new ArgumentException("Datum kraja ne može biti pre datuma početka");
 
-            // Provera dostupnosti apartmana
-            if (!apartmanService.CheckAvailability(rezervacija.GetIdApartmana(), 
-                                                   rezervacija.GetDatumOd(), 
-                                                   rezervacija.GetDatumDo()))
+            // Provera dostupnosti apartmana (bez ove rezervacije)
+            if (!CheckAvailabilityExcluding(rezervacija.GetIdApartmana(), 
+                                           rezervacija.GetDatumOd(), 
+                                           rezervacija.GetDatumDo(),
+                                           null))
             {
                 throw new InvalidOperationException("Apartman nije dostupan za izabrane datume");
             }
@@ -88,10 +89,11 @@ namespace HotelReservationSystem.Services
             if (rezervacija.GetStatus() != StatusRezervacije.NaCekanju)
                 return false;
 
-            // Ponovo proveriti dostupnost pre potvrde
-            if (!apartmanService.CheckAvailability(rezervacija.GetIdApartmana(),
-                                                   rezervacija.GetDatumOd(),
-                                                   rezervacija.GetDatumDo()))
+            // Ponovo proveriti dostupnost pre potvrde, ALI ignoriši ovu rezervaciju
+            if (!CheckAvailabilityExcluding(rezervacija.GetIdApartmana(),
+                                           rezervacija.GetDatumOd(),
+                                           rezervacija.GetDatumDo(),
+                                           id))
             {
                 return false;
             }
@@ -157,6 +159,31 @@ namespace HotelReservationSystem.Services
         public string GenerateRezervacijaId()
         {
             return Guid.NewGuid().ToString();
+        }
+
+        // NOVA metoda - proverava dostupnost ali ignoriše određenu rezervaciju
+        private bool CheckAvailabilityExcluding(string idApartmana, DateTime datumOd, DateTime datumDo, string? excludeRezervacijaId)
+        {
+            var rezervacije = GetRezervacijeByApartman(idApartmana);
+
+            // Filtriranje samo aktivnih rezervacija (potvrdjene i na čekanju)
+            // ALI ignoriši rezervaciju koja se odobrava
+            var activeRezervacije = rezervacije.Where(r =>
+                (r.GetStatus() == StatusRezervacije.Potvrdjeno || r.GetStatus() == StatusRezervacije.NaCekanju) &&
+                (excludeRezervacijaId == null || r.GetId() != excludeRezervacijaId)
+            ).ToList();
+
+            // Provera preklapanja datuma
+            foreach (var rezervacija in activeRezervacije)
+            {
+                bool overlaps = !(datumDo < rezervacija.GetDatumOd() || datumOd > rezervacija.GetDatumDo());
+                if (overlaps)
+                {
+                    return false; // Apartman nije dostupan
+                }
+            }
+
+            return true; // Apartman je dostupan
         }
     }
 }

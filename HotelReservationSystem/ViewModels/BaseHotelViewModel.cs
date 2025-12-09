@@ -12,10 +12,22 @@ namespace HotelReservationSystem.ViewModels
         protected ObservableCollection<Hotel> sviHoteli = new();
         protected ObservableCollection<Apartman> apartmaniZaPrikaz = new();
         protected Hotel? selectedHotelZaPrikaz;
+        protected Apartman? selectedApartmanZaPrikaz;
         protected string searchText = string.Empty;
         protected string searchCriteria = "Ime";
         protected string sortOrder = "Rastuće";
         protected string statusMessage = string.Empty;
+        
+        // Liste opcija za ComboBox
+        public ObservableCollection<string> SearchCriteriaOptions { get; } = new()
+        {
+            "Ime", "Godina", "Zvezdice", "Broj soba", "Broj gostiju", "Sobe + Gosti"
+        };
+        
+        public ObservableCollection<string> SortOrderOptions { get; } = new()
+        {
+            "Rastuće", "Opadajuće"
+        };
 
         public ObservableCollection<Hotel> SviHoteli
         {
@@ -41,6 +53,12 @@ namespace HotelReservationSystem.ViewModels
             }
         }
 
+        public Apartman? SelectedApartmanZaPrikaz
+        {
+            get => selectedApartmanZaPrikaz;
+            set => SetProperty(ref selectedApartmanZaPrikaz, value);
+        }
+
         public string SearchText
         {
             get => searchText;
@@ -50,13 +68,25 @@ namespace HotelReservationSystem.ViewModels
         public string SearchCriteria
         {
             get => searchCriteria;
-            set => SetProperty(ref searchCriteria, value);
+            set
+            {
+                if (SetProperty(ref searchCriteria, value))
+                {
+                    StatusMessage = $"Kriterijum: {value}";
+                }
+            }
         }
 
         public string SortOrder
         {
             get => sortOrder;
-            set => SetProperty(ref sortOrder, value);
+            set
+            {
+                if (SetProperty(ref sortOrder, value))
+                {
+                    StatusMessage = $"Redosled: {value}";
+                }
+            }
         }
 
         public string StatusMessage
@@ -102,7 +132,6 @@ namespace HotelReservationSystem.ViewModels
             try
             {
                 var hotelService = ServiceLocator.Instance.HotelService;
-                var apartmanService = ServiceLocator.Instance.ApartmanService;
                 
                 if (string.IsNullOrWhiteSpace(SearchText) && SearchCriteria != "Apartmani")
                 {
@@ -119,7 +148,9 @@ namespace HotelReservationSystem.ViewModels
                     "Zvezdice" => int.TryParse(SearchText, out int zvezdice) 
                         ? hotelService.SearchHotelsByStars(zvezdice) 
                         : new System.Collections.Generic.List<Hotel>(),
-                    "Apartmani" => SearchByApartments(),
+                    "Broj soba" => SearchByRooms(),
+                    "Broj gostiju" => SearchByGuests(),
+                    "Sobe + Gosti" => SearchByRoomsAndGuests(),
                     _ => hotelService.GetApprovedHotels()
                 };
                 
@@ -129,7 +160,7 @@ namespace HotelReservationSystem.ViewModels
                     SviHoteli.Add(hotel);
                 }
                 
-                StatusMessage = $"Pronađeno {SviHoteli.Count} hotela";
+                StatusMessage = $"Pronađeno {SviHoteli.Count} hotela (kriterijum: {SearchCriteria})";
             }
             catch (Exception ex)
             {
@@ -137,11 +168,10 @@ namespace HotelReservationSystem.ViewModels
             }
         }
 
-        private System.Collections.Generic.List<Hotel> SearchByApartments()
+        private System.Collections.Generic.List<Hotel> SearchByRoomsAndGuests()
         {
             var hotelService = ServiceLocator.Instance.HotelService;
             
-            // Format može biti: "2" (samo sobe), "3" (samo gostiju), "2 & 3" (AND), "2 | 3" (OR)
             var searchParts = SearchText.Split(new[] { '&', '|' }, StringSplitOptions.RemoveEmptyEntries);
             
             if (searchParts.Length == 0)
@@ -153,7 +183,6 @@ namespace HotelReservationSystem.ViewModels
             
             if (searchParts.Length == 1)
             {
-                // Samo jedan broj - pretpostavljamo da je broj soba
                 if (int.TryParse(searchParts[0].Trim(), out int broj))
                 {
                     brojSoba = broj;
@@ -161,7 +190,6 @@ namespace HotelReservationSystem.ViewModels
             }
             else if (searchParts.Length == 2)
             {
-                // Dva broja sa operatorom
                 if (int.TryParse(searchParts[0].Trim(), out int broj1) &&
                     int.TryParse(searchParts[1].Trim(), out int broj2))
                 {
@@ -172,6 +200,30 @@ namespace HotelReservationSystem.ViewModels
             }
             
             return hotelService.SearchHotelsByApartments(brojSoba, brojGostiju, logickiOperator);
+        }
+
+        private System.Collections.Generic.List<Hotel> SearchByRooms()
+        {
+            var hotelService = ServiceLocator.Instance.HotelService;
+            
+            if (int.TryParse(SearchText.Trim(), out int brojSoba))
+            {
+                return hotelService.SearchHotelsByApartments(brojSoba, null, "");
+            }
+            
+            return hotelService.GetApprovedHotels();
+        }
+
+        private System.Collections.Generic.List<Hotel> SearchByGuests()
+        {
+            var hotelService = ServiceLocator.Instance.HotelService;
+            
+            if (int.TryParse(SearchText.Trim(), out int brojGostiju))
+            {
+                return hotelService.SearchHotelsByApartments(null, brojGostiju, "");
+            }
+            
+            return hotelService.GetApprovedHotels();
         }
 
         protected virtual void SortHoteli()
@@ -190,7 +242,7 @@ namespace HotelReservationSystem.ViewModels
                     SviHoteli.Add(hotel);
                 }
                 
-                StatusMessage = $"Sortirano {SviHoteli.Count} hotela po broju zvezdica ({SortOrder.ToLower()})";
+                StatusMessage = $"Sortirano {SviHoteli.Count} hotela ({SortOrder})";
             }
             catch (Exception ex)
             {
@@ -210,6 +262,8 @@ namespace HotelReservationSystem.ViewModels
                 {
                     ApartmaniZaPrikaz.Add(apartman);
                 }
+                
+                StatusMessage = $"Učitano {ApartmaniZaPrikaz.Count} apartmana";
             }
             catch (Exception ex)
             {

@@ -10,30 +10,21 @@ namespace HotelReservationSystem.ViewModels
 {
     public class GostViewModel : BaseHotelViewModel
     {
-        private ObservableCollection<Apartman> apartmani = new();
         private ObservableCollection<Rezervacija> rezervacije = new();
-        private Apartman? selectedApartman;
         private Rezervacija? selectedRezervacija;
         private DateTime datumOd = DateTime.Today;
         private DateTime datumDo = DateTime.Today.AddDays(1);
         private string statusFilter = "Sve";
-
-        public ObservableCollection<Apartman> Apartmani
+        
+        public ObservableCollection<string> StatusFilterOptions { get; } = new()
         {
-            get => apartmani;
-            set => SetProperty(ref apartmani, value);
-        }
+            "Sve", "Na čekanju", "Potvrđeno", "Odbijeno"
+        };
 
         public ObservableCollection<Rezervacija> Rezervacije
         {
             get => rezervacije;
             set => SetProperty(ref rezervacije, value);
-        }
-
-        public Apartman? SelectedApartman
-        {
-            get => selectedApartman;
-            set => SetProperty(ref selectedApartman, value);
         }
 
         public Rezervacija? SelectedRezervacija
@@ -85,7 +76,8 @@ namespace HotelReservationSystem.ViewModels
         {
             try
             {
-                if (SelectedApartman == null)
+                // Koristimo SelectedApartmanZaPrikaz iz bazne klase
+                if (SelectedApartmanZaPrikaz == null)
                 {
                     MessageBox.Show("Izaberite apartman", "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -107,7 +99,7 @@ namespace HotelReservationSystem.ViewModels
                 var novaRezervacija = new Rezervacija(
                     Guid.NewGuid().ToString(),
                     currentUser.GetJmbg(),
-                    SelectedApartman.GetId(),
+                    SelectedApartmanZaPrikaz.GetId(),
                     DatumOd,
                     DatumDo,
                     StatusRezervacije.NaCekanju,

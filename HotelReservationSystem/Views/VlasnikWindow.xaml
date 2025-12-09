@@ -79,11 +79,7 @@
                                 </Grid.ColumnDefinitions>
                                 
                                 <Label Content="Kriterijum:" Grid.Column="0" VerticalAlignment="Center"/>
-                                <ComboBox Grid.Column="1" SelectedItem="{Binding SearchCriteria}" Margin="5">
-                                    <ComboBoxItem Content="Ime" IsSelected="True"/>
-                                    <ComboBoxItem Content="Godina"/>
-                                    <ComboBoxItem Content="Zvezdice"/>
-                                    <ComboBoxItem Content="Apartmani"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding SearchCriteriaOptions}" SelectedItem="{Binding SearchCriteria, Mode=TwoWay}" Margin="5">
                                 </ComboBox>
                                 
                                 <TextBox Grid.Column="2" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
@@ -92,17 +88,22 @@
                                 <Button Grid.Column="3" Content="Pretraži" Command="{Binding SearchHoteliCommand}" Width="100" Margin="5"/>
                             </Grid>
                             
-                            <TextBlock Text="* Za pretragu po apartmanima: unesite samo broj soba (npr. '2') ili broj soba i gostiju sa operatorom (npr. '2 &amp; 3' ili '2 | 4')" 
-                                       FontSize="10" Margin="5" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock FontSize="10" Margin="5" Foreground="Gray" TextWrapping="Wrap">
+                                <Run Text="* Pretraga:"/>
+                                <LineBreak/>
+                                <Run Text="  - Broj soba: unesite samo broj soba (npr. '2')"/>
+                                <LineBreak/>
+                                <Run Text="  - Broj gostiju: unesite samo broj gostiju (npr. '3')"/>
+                                <LineBreak/>
+                                <Run Text="  - Sobe + Gosti: kombinacija sa operatorima (npr. '2 &amp; 3' ili '2 | 4')"/>
+                            </TextBlock>
                         </StackPanel>
                     </GroupBox>
                     
                     <!-- Sortiranje -->
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10,0">
                         <Label Content="Sortiranje po zvezdicama:" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <ComboBox SelectedItem="{Binding SortOrder}" Width="120" Margin="5">
-                            <ComboBoxItem Content="Rastuće" IsSelected="True"/>
-                            <ComboBoxItem Content="Opadajuće"/>
+                        <ComboBox ItemsSource="{Binding SortOrderOptions}" SelectedItem="{Binding SortOrder, Mode=TwoWay}" Width="120" Margin="5">
                         </ComboBox>
                         <Button Content="Sortiraj" Command="{Binding SortHoteliCommand}" Margin="5"/>
                         <Button Content="Prikaži sve" Command="{Binding LoadSviHoteliCommand}" Margin="5"/>
@@ -110,7 +111,7 @@
                     
                     <DataGrid Grid.Row="2" 
                               ItemsSource="{Binding SviHoteli}"
-                              SelectedItem="{Binding SelectedHotelZaPrikaz}"
+                              SelectedItem="{Binding SelectedHotelZaPrikaz, Mode=TwoWay}"
                               Margin="10"
                               AutoGenerateColumns="False"
                               IsReadOnly="True">
@@ -250,12 +251,9 @@
                     
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
                         <Label Content="Filter:" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <ComboBox SelectedItem="{Binding StatusFilterRezervacije}" 
+                        <ComboBox ItemsSource="{Binding StatusFilterOptions}" SelectedItem="{Binding StatusFilterRezervacije, Mode=TwoWay}" 
                                   Width="150"
                                   VerticalContentAlignment="Center">
-                            <ComboBoxItem Content="Sve" IsSelected="True"/>
-                            <ComboBoxItem Content="Na čekanju"/>
-                            <ComboBoxItem Content="Potvrđeno"/>
                         </ComboBox>
                         <Button Content="Učitaj" 
                                 Command="{Binding LoadRezervacijeCommand}"

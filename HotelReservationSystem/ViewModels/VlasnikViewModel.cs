@@ -22,6 +22,11 @@ namespace HotelReservationSystem.ViewModels
         private int apartmanMaxGostiju = 2;
         
         private string statusFilterRezervacije = "Sve";
+        
+        public ObservableCollection<string> StatusFilterOptions { get; } = new()
+        {
+            "Sve", "Na čekanju", "Potvrđeno", "Odbijeno"
+        };
 
         public ObservableCollection<Hotel> MojiHoteli
         {
@@ -337,15 +342,23 @@ namespace HotelReservationSystem.ViewModels
                     return;
                 }
 
+                StatusMessage = $"Debug: Pokušaj odobravanja rezervacije {SelectedRezervacija.GetId()}";
+                
                 if (SelectedRezervacija.GetStatus() != StatusRezervacije.NaCekanju)
                 {
-                    MessageBox.Show("Možete potvrditi samo rezervacije koje su na čekanju", "Greška", 
-                                  MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"Možete potvrditi samo rezervacije koje su na čekanju.\nTrenutni status: {SelectedRezervacija.GetStatus()}", 
+                                  "Greška", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 var rezervacijaService = ServiceLocator.Instance.RezervacijaService;
-                if (rezervacijaService.ApproveRezervacija(SelectedRezervacija.GetId()))
+                
+                StatusMessage = "Debug: Pozivam ApproveRezervacija...";
+                bool success = rezervacijaService.ApproveRezervacija(SelectedRezervacija.GetId());
+                
+                StatusMessage = $"Debug: Rezultat = {success}";
+                
+                if (success)
                 {
                     MessageBox.Show("Rezervacija je potvrđena", "Uspeh", 
                                   MessageBoxButton.OK, MessageBoxImage.Information);
@@ -353,7 +366,10 @@ namespace HotelReservationSystem.ViewModels
                 }
                 else
                 {
-                    MessageBox.Show("Nije moguće potvrditi rezervaciju. Možda je apartman već zauzet.", 
+                    MessageBox.Show("Nije moguće potvrditi rezervaciju.\n\n" +
+                                  "Mogući razlozi:\n" +
+                                  "- Apartman je već zauzet za te datume\n" +
+                                  "- Greška u bazi podataka", 
                                   "Greška", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
