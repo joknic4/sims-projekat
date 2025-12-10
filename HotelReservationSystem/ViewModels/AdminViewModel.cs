@@ -115,6 +115,7 @@ namespace HotelReservationSystem.ViewModels
             LoadVlasnike();
             GenerateHotelCode();
             LoadSviHoteli();
+            LoadHoteli(); // Učitaj hotele za donju tabelu
         }
 
         private void RegisterVlasnik(object? parameter)

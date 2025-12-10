@@ -315,6 +315,7 @@ namespace HotelReservationSystem.ViewModels
                 {
                     "Na čekanju" => allRezervacije.Where(r => r.GetStatus() == StatusRezervacije.NaCekanju).ToList(),
                     "Potvrđeno" => allRezervacije.Where(r => r.GetStatus() == StatusRezervacije.Potvrdjeno).ToList(),
+                    "Odbijeno" => allRezervacije.Where(r => r.GetStatus() == StatusRezervacije.Odbijeno).ToList(),
                     _ => allRezervacije
                 };
 

@@ -73,7 +73,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 
-                                <Label Content="Kriterijum:" Grid.Column="0" VerticalAlignment="Center"/>
+                                <Label Content="Kriterijum pretrage:" Grid.Column="0" VerticalAlignment="Center"/>
                                 <ComboBox Grid.Column="1" 
                                          ItemsSource="{Binding SearchCriteriaOptions}"
                                          SelectedItem="{Binding SearchCriteria, Mode=TwoWay}" 
@@ -86,13 +86,13 @@
                             </Grid>
                             
                             <TextBlock FontSize="10" Margin="5" Foreground="Gray" TextWrapping="Wrap">
-                                <Run Text="* Pretraga:"/>
+                                <Run Text="* Pretraga hotela po apartmanima:"/>
                                 <LineBreak/>
-                                <Run Text="  - Broj soba: unesite samo broj soba (npr. '2')"/>
+                                <Run Text="  - Broj soba: traži hotele sa apartmanima koji imaju uneti broj soba (npr. '2')"/>
                                 <LineBreak/>
-                                <Run Text="  - Broj gostiju: unesite samo broj gostiju (npr. '3')"/>
+                                <Run Text="  - Broj gostiju: traži hotele sa apartmanima koji primaju uneti broj gostiju (npr. '3')"/>
                                 <LineBreak/>
-                                <Run Text="  - Sobe + Gosti: kombinacija sa operatorima (npr. '2 &amp; 3' ili '2 | 4')"/>
+                                <Run Text="  - Sobe + Gosti: kombinacija sa operatorima (npr. '2 &amp; 3' = 2 sobe I 3 gosta, '2 | 4' = 2 sobe ILI 4 gosta)"/>
                             </TextBlock>
                         </StackPanel>
                     </GroupBox>
