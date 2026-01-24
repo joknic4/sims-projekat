@@ -9,17 +9,14 @@ namespace HotelReservationSystem.Services
     public class RezervacijaService
     {
         private readonly IRezervacijaRepository rezervacijaRepository;
-        private readonly ApartmanService apartmanService;
         private readonly IHotelRepository hotelRepository;
         private readonly IApartmanRepository apartmanRepository;
 
         public RezervacijaService(IRezervacijaRepository rezervacijaRepository, 
-                                 ApartmanService apartmanService,
                                  IHotelRepository hotelRepository,
                                  IApartmanRepository apartmanRepository)
         {
             this.rezervacijaRepository = rezervacijaRepository;
-            this.apartmanService = apartmanService;
             this.hotelRepository = hotelRepository;
             this.apartmanRepository = apartmanRepository;
         }
@@ -161,7 +158,7 @@ namespace HotelReservationSystem.Services
             return Guid.NewGuid().ToString();
         }
 
-        // NOVA metoda - proverava dostupnost ali ignoriše određenu rezervaciju
+        //proverava dostupnost ali ignoriše određenu rezervaciju
         private bool CheckAvailabilityExcluding(string idApartmana, DateTime datumOd, DateTime datumDo, string? excludeRezervacijaId)
         {
             var rezervacije = GetRezervacijeByApartman(idApartmana);

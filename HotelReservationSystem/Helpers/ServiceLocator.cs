@@ -36,7 +36,7 @@ namespace HotelReservationSystem.Helpers
             KorisnikService = new KorisnikService(korisnikRepo);
             ApartmanService = new ApartmanService(apartmanRepo, rezervacijaRepo);
             HotelService = new HotelService(hotelRepo, apartmanRepo);
-            RezervacijaService = new RezervacijaService(rezervacijaRepo, ApartmanService, hotelRepo, apartmanRepo);
+            RezervacijaService = new RezervacijaService(rezervacijaRepo, hotelRepo, apartmanRepo);
         }
 
         public static ServiceLocator Instance
